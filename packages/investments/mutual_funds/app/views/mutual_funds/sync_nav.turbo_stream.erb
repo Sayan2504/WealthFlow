@@ -1,0 +1,12 @@
+<%# app/views/mutual_funds/sync_nav.turbo_stream.erb %>
+<%= turbo_stream.replace "mutual_funds_section" do %>
+  <%= render "mutual_funds/table_section", mutual_funds: @mutual_funds %>
+<% end %>
+
+<%= turbo_stream.update "flash_notifications" do %>
+  <div class="p-3.5 rounded-xl bg-emerald-950/70 border border-emerald-800/60 text-emerald-300 text-xs flex items-center justify-between">
+    <span><%= flash[:notice] %></span>
+    <button onclick="this.parentElement.remove()" class="text-emerald-400 hover:text-white">&times;</button>
+  </div>
+<% end %>
+

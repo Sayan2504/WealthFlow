@@ -1,0 +1,7 @@
+# packages/insurance/life_insurance/package.yml
+enforce_dependencies: true
+enforce_privacy: true
+dependencies:
+  - "packages/core"
+metadata:
+  description: "Term life insurance, endowment/ULIP coverage, and human life value adequacy engine"

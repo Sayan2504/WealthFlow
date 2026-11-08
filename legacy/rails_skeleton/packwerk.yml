@@ -1,0 +1,19 @@
+# packwerk.yml
+# Configuration for Packwerk package boundary enforcement
+package_paths:
+  - "."
+  - "packages/*"
+  - "packages/investments/*"
+  - "packages/insurance/*"
+  - "packages/liabilities/*"
+
+# Rules for code organization
+enforce_dependencies: true
+enforce_privacy: true
+
+# Inflections and autoload paths
+inflections_file: "config/initializers/inflections.rb"
+exclude:
+  - "{bin,node_modules,script,tmp,vendor}/**/*"
+  - "**/spec/**/*"
+  - "**/test/**/*"

@@ -1,0 +1,8 @@
+# packages/insurance/health_insurance/package.yml
+enforce_dependencies: true
+enforce_privacy: true
+dependencies:
+  - "packages/core"
+metadata:
+  description: "Health insurance policies, family floaters, coverage riders, deductibles and emergency health buffer"
+

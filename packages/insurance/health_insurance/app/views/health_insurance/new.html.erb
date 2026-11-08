@@ -1,0 +1,100 @@
+<%# app/views/insurance_policies/new.html.erb %>
+<div class="max-w-2xl mx-auto my-8">
+  <div class="glass-card p-8 border-slate-800">
+    <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+      <div>
+        <h2 class="text-xl font-bold text-white">Register Insurance Policy</h2>
+        <p class="text-xs text-slate-400">Health family floaters, critical illness, or pure term life protection</p>
+      </div>
+      <%= link_to root_path, class: "p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" do %>
+        &times; Close
+      <% end %>
+    </div>
+
+    <%= form_with model: @policy, url: insurance_policies_path, method: :post, class: "space-y-4" do |f| %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <%= f.label :category, "Insurance Category", class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= render CustomSelectComponent.new(
+                name: "insurance_policy[category]",
+                selected: @policy.category || "health",
+                options: [
+                  ["Health Insurance", "health"],
+                  ["Life Insurance (Term)", "life"]
+                ]
+              ) %>
+        </div>
+
+        <div>
+          <%= f.label :policy_type, "Policy Type", class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= render CustomSelectComponent.new(
+                name: "insurance_policy[policy_type]",
+                selected: "floater",
+                options: [
+                  ["Family Floater (Health)", "floater"],
+                  ["Critical Illness (Health)", "critical_illness"],
+                  ["Pure Term Plan (Life)", "term"],
+                  ["Endowment / ULIP (Life)", "endowment"]
+                ]
+              ) %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <%= f.label :provider_name, "Insurance Provider", class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= f.text_field :provider_name, class: "input-field", placeholder: "e.g. HDFC ERGO / Tata AIA", required: true %>
+        </div>
+
+        <div>
+          <%= f.label :policy_number, "Policy Number", class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= f.text_field :policy_number, class: "input-field", placeholder: "e.g. POL-8829102", required: true %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <%= f.label :sum_assured, "Sum Assured (₹)", class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= f.number_field :sum_assured, step: 50000, class: "input-field", placeholder: "1000000", required: true %>
+        </div>
+
+        <div>
+          <%= f.label :premium_amount, "Premium Amount (₹)", class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= f.number_field :premium_amount, step: 100, class: "input-field", placeholder: "15000", required: true %>
+        </div>
+
+        <div>
+          <%= f.label :premium_frequency, "Frequency", class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= render CustomSelectComponent.new(
+                name: "insurance_policy[premium_frequency]",
+                selected: "annually",
+                options: [
+                  ["Annually", "annually"],
+                  ["Half-Yearly", "half_yearly"],
+                  ["Quarterly", "quarterly"],
+                  ["Monthly", "monthly"]
+                ]
+              ) %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <%= f.label :start_date, "Policy Start Date", class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= f.date_field :start_date, value: Date.current, class: "input-field", required: true %>
+        </div>
+
+        <div>
+          <%= f.label :end_date, "Renewal / Expiry Date", class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= f.date_field :end_date, value: Date.current + 1.year, class: "input-field", required: true %>
+        </div>
+      </div>
+
+      <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
+        <%= link_to "Cancel", root_path, class: "px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white" %>
+        <%= f.submit "Register Policy", class: "btn-primary py-2.5 px-6" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+

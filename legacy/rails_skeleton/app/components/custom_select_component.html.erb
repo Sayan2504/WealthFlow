@@ -1,0 +1,36 @@
+<%# app/components/custom_select_component.html.erb %>
+<div class="relative" data-controller="custom-select">
+  <% if @label %>
+    <label class="block text-xs font-medium text-slate-300 mb-1.5"><%= @label %></label>
+  <% end %>
+  <input type="hidden" name="<%= @name %>" value="<%= @selected %>" data-custom-select-target="input">
+
+  <button type="button"
+          data-action="click->custom-select#toggle"
+          class="w-full flex items-center justify-between rounded-xl bg-slate-800/90 border border-slate-700/80 hover:border-indigo-500/60 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 px-3.5 py-2.5 text-white text-xs font-medium transition-all shadow-inner">
+    <span data-custom-select-target="label"><%= selected_label %></span>
+    <svg data-custom-select-target="chevron" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+    </svg>
+  </button>
+
+  <%# Floating Rounded Dropdown Menu with Gap (mt-2) %>
+  <div data-custom-select-target="menu"
+       class="hidden absolute left-0 right-0 mt-2 z-50 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 shadow-2xl shadow-black/60 p-1.5 space-y-0.5 max-h-60 overflow-y-auto">
+    <% @options.each do |opt_label, opt_value| %>
+      <% is_selected = opt_value.to_s == @selected.to_s %>
+      <button type="button"
+              data-custom-select-target="option"
+              data-action="click->custom-select#select"
+              data-value="<%= opt_value %>"
+              data-label="<%= opt_label %>"
+              class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors text-left <%= is_selected ? 'bg-indigo-600/20 text-indigo-300' : 'text-slate-200 hover:bg-slate-800/80 hover:text-white' %>">
+        <span><%= opt_label %></span>
+        <svg data-check class="w-3.5 h-3.5 text-indigo-400 transition-opacity <%= is_selected ? 'opacity-100' : 'opacity-0' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+        </svg>
+      </button>
+    <% end %>
+  </div>
+</div>
+

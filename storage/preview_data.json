@@ -1,0 +1,453 @@
+{
+  "user": {
+    "name": "WealthFlow Portfolio",
+    "annual_income": 1800000,
+    "last_updated": "2026-11-07"
+  },
+  "mutual_funds": [
+    {
+      "id": 101,
+      "scheme_name": "SBI Gold",
+      "scheme_code": "119788",
+      "latest_nav": 42.88,
+      "nav_date": "06-11-2026",
+      "units": 493.9366,
+      "category": "Gold ETF / Gold Fund",
+      "amc": "SBI Funds Management",
+      "sip_amount": 1000,
+      "start_date": "2024-09-13",
+      "current_value": 21180,
+      "invested_amount": 17449,
+      "step_up_pct": 0
+    },
+    {
+      "id": 102,
+      "scheme_name": "HDFC Nifty 50 Index Fund",
+      "scheme_code": "119063",
+      "latest_nav": 245.0582,
+      "nav_date": "06-11-2026",
+      "units": 179.994,
+      "category": "Large Cap / Index Fund",
+      "amc": "HDFC Asset Management Company",
+      "sip_amount": 3000,
+      "start_date": "2024-09-13",
+      "current_value": 44109.01,
+      "invested_amount": 42178,
+      "step_up_pct": 32.5
+    },
+    {
+      "id": 103,
+      "scheme_name": "Quant Small Cap Fund",
+      "scheme_code": "120828",
+      "latest_nav": 307.8765,
+      "nav_date": "06-11-2026",
+      "units": 26.0592,
+      "category": "Small Cap Equity",
+      "amc": "Quant Mutual Fund (Quant AMC)",
+      "sip_amount": 0,
+      "start_date": "2025-09-07",
+      "current_value": 8023.02,
+      "invested_amount": 7000,
+      "step_up_pct": 0
+    },
+    {
+      "id": 104,
+      "scheme_name": "Motilal Oswal Midcap Fund",
+      "scheme_code": "127042",
+      "latest_nav": 119.0069,
+      "nav_date": "06-11-2026",
+      "units": 253.1534,
+      "category": "Mid Cap Equity",
+      "amc": "Motilal Oswal Asset Management",
+      "sip_amount": 1500,
+      "start_date": "2024-08-27",
+      "current_value": 30127,
+      "invested_amount": 28449,
+      "step_up_pct": 15
+    },
+    {
+      "id": 105,
+      "scheme_name": "Icici Prudential Us Bluechip Equity Fund Direct Plan Growth",
+      "scheme_code": "120186",
+      "latest_nav": 93.23,
+      "nav_date": "06-11-2026",
+      "units": 116.3896,
+      "category": "International / Overseas FoF",
+      "amc": "ICICI Prudential Mutual Fund",
+      "sip_amount": 1000,
+      "start_date": "2026-01-31",
+      "current_value": 10851,
+      "invested_amount": 9999,
+      "step_up_pct": 15
+    },
+    {
+      "id": 107,
+      "scheme_name": "Parag Parikh Flexi Cap Fund",
+      "scheme_code": "122639",
+      "latest_nav": 93.9483,
+      "nav_date": "06-11-2026",
+      "units": 236.2363,
+      "category": "Flexi Cap Equity",
+      "amc": "PPFAS Mutual Fund",
+      "sip_amount": 3500,
+      "start_date": "2025-11-02",
+      "current_value": 22194,
+      "invested_amount": 21499,
+      "step_up_pct": 37.5
+    }
+  ],
+  "fixed_deposits": [
+    {
+      "id": 201,
+      "bank": "SBI",
+      "fd_no": "45588898601",
+      "principal": 250000,
+      "rate": 6.45,
+      "start_date": "2026-09-21",
+      "maturity_date": "2027-12-09",
+      "maturity_amount": 270240
+    },
+    {
+      "id": 202,
+      "bank": "PNB",
+      "fd_no": "054520DP00028943",
+      "principal": 500000,
+      "rate": 6.6,
+      "start_date": "2025-07-29",
+      "maturity_date": "2027-10-16",
+      "maturity_amount": 541451
+    },
+    {
+      "id": 203,
+      "bank": "HDFC",
+      "fd_no": "50301346662245",
+      "principal": 100000,
+      "rate": 6.45,
+      "start_date": "2025-05-03",
+      "maturity_date": "2027-11-03",
+      "maturity_amount": 110102
+    },
+    {
+      "id": 204,
+      "bank": "HDFC",
+      "fd_no": "50301421664925",
+      "principal": 50000,
+      "rate": 4.25,
+      "start_date": "2026-09-21",
+      "maturity_date": "2027-01-01",
+      "maturity_amount": 50594
+    },
+    {
+      "id": 205,
+      "bank": "PNB",
+      "fd_no": "166610PU00001356",
+      "principal": 100000,
+      "rate": 6.25,
+      "start_date": "2026-09-10",
+      "maturity_date": "2027-09-10",
+      "maturity_amount": 106398
+    }
+  ],
+  "recurring_deposits": [
+    {
+      "id": 301,
+      "bank": "HDFC",
+      "rd_no": "5040 0362 2929 38",
+      "purpose": "Travel",
+      "monthly_amount": 18000,
+      "rate": 7.05,
+      "start_date": "2025-05-10",
+      "end_date": "2026-11-10",
+      "maturity_amount": 342641
+    },
+    {
+      "id": 302,
+      "bank": "HDFC",
+      "rd_no": "5040 0359 7357 57",
+      "purpose": "Sister college fees",
+      "monthly_amount": 5000,
+      "rate": 6.6,
+      "start_date": "2026-04-01",
+      "end_date": "2027-04-01",
+      "maturity_amount": 62056
+    }
+  ],
+  "flexi_rds": [
+    {
+      "id": 1794069536327,
+      "bank": "PNB",
+      "rd_no": "1666107600000627",
+      "purpose": "Flexible Goal",
+      "base_monthly": 100,
+      "total_deposited": 200,
+      "rate": 6.25,
+      "start_date": "2026-10-10",
+      "end_date": "2027-10-10",
+      "maturity_amount": 207
+    }
+  ],
+  "ppf": {
+    "account_identifier": "PPF-SOVEREIGN",
+    "interest_rate": 7.1,
+    "current_balance": 894315,
+    "last_updated": "2026-11-07",
+    "contributions": [
+      {
+        "id": 401,
+        "fy": "2021 - 2022",
+        "date": "2022-03-31",
+        "amount": 150000
+      },
+      {
+        "id": 402,
+        "fy": "2022 - 2023",
+        "date": "2023-03-31",
+        "amount": 150000
+      },
+      {
+        "id": 403,
+        "fy": "2023 - 2024",
+        "date": "2024-03-31",
+        "amount": 150000
+      },
+      {
+        "id": 404,
+        "fy": "2024 - 2025",
+        "date": "2025-03-31",
+        "amount": 100000
+      },
+      {
+        "id": 405,
+        "fy": "2025 - 2026",
+        "date": "2026-03-31",
+        "amount": 63500
+      },
+      {
+        "id": 406,
+        "fy": "2026 - 2027",
+        "date": "2026-11-07",
+        "amount": 137000
+      },
+      {
+        "id": 1794045541715,
+        "fy": "2026 - 2027",
+        "date": "2026-11-01",
+        "amount": 13000
+      }
+    ],
+    "rate_authority": "Dept. of Economic Affairs (MoF, Govt. of India)",
+    "effective_quarter": "Q3 FY 2026-27 (Oct–Dec)"
+  },
+  "epf": {
+    "account_identifier": "EPFO-UAN",
+    "interest_rate": 8.25,
+    "current_balance": 632337,
+    "last_updated": "2026-11-07",
+    "entries": [
+      {
+        "id": 501,
+        "date": "2026-11-07",
+        "description": "Accumulated EPF Corpus (Employee + Employer)",
+        "employee": 361163,
+        "employer": 271174,
+        "interest": 0
+      }
+    ],
+    "rate_authority": "EPFO Central Board of Trustees (Ministry of Labour)",
+    "effective_fy": "FY 2025-26 / 2026-27"
+  },
+  "ulip": {
+    "policy_name": "Market-Linked ULIP",
+    "total_paid": 120000.24,
+    "current_value": 49452.01
+  },
+  "home_loan": {
+    "outstanding_principal": 2698271,
+    "monthly_emi": 30615,
+    "original_loan_amount": 4000000,
+    "loan_start_date": "2025-04-05",
+    "tenure_years": 30,
+    "interest_rate": 7.45,
+    "emi_day": 26
+  },
+  "health_insurance": [
+    {
+      "id": 601,
+      "insurer": "Aditya Birla Capital Health Insurance",
+      "policy_name": "Activ One NXT",
+      "policy_type": "Individual",
+      "insured_person": "Sangita Sinha",
+      "nominee_person": "Chhanda Sinha",
+      "sum_insured": 1000000,
+      "annual_premium": 5178,
+      "policy_no": "31-25-0264118-00",
+      "start_date": "2025-09-21",
+      "end_date": "2028-09-21"
+    },
+    {
+      "id": 602,
+      "insurer": "Aditya Birla Capital Health Insurance",
+      "policy_name": "Activ One NXT",
+      "policy_type": "Parents",
+      "insured_person": "Chhanda Sinha, Goutam Sinha",
+      "nominee_person": "Anuska Sarkar",
+      "sum_insured": 1000000,
+      "annual_premium": 43184,
+      "policy_no": "31-25-0216771-00",
+      "start_date": "2025-08-22",
+      "end_date": "2028-08-21"
+    },
+    {
+      "id": 603,
+      "insurer": "Aditya Birla Capital Health Insurance",
+      "policy_name": "ActivOne Maternity",
+      "policy_type": "Me, Spouse",
+      "insured_person": "Sayan Sinha, Anuska Sarkar",
+      "nominee_person": "Anuska Sarkar",
+      "sum_insured": 1000000,
+      "annual_premium": 19807,
+      "policy_no": "31-25-0094311-00",
+      "start_date": "2025-06-06",
+      "end_date": "2028-07-05"
+    },
+    {
+      "id": 604,
+      "insurer": "Zurich Kotak (Employer)",
+      "policy_name": "Vidal Health",
+      "policy_type": "Family",
+      "insured_person": "Sayan Sinha, Anuska Sarkar, Chhanda Sinha, Goutam Sinha",
+      "nominee_person": "Anuska Sarkar",
+      "sum_insured": 500000,
+      "annual_premium": 30000,
+      "policy_no": "",
+      "start_date": "2026-04-01",
+      "end_date": "2027-03-31"
+    }
+  ],
+  "life_insurance": [],
+  "bank_accounts": [
+    {
+      "id": 1794069425297,
+      "bank_name": "SBI",
+      "account_type": "Savings",
+      "account_no": "33519976900",
+      "branch_ifsc": "SBIN0002054",
+      "holder_name": "Sayan Sinha",
+      "current_balance": 30615,
+      "interest_rate": 2.5,
+      "nominee": "Chhanda Sinha /  Mother",
+      "purpose": "Home Loan Debit",
+      "notes": "",
+      "nominee_notes": ""
+    },
+    {
+      "id": 1794071299969,
+      "bank_name": "PNB",
+      "account_type": "Savings",
+      "account_no": "0545200100002896",
+      "branch_ifsc": "PUNB0166610",
+      "holder_name": "Sayan Sinha",
+      "current_balance": 21828.7,
+      "interest_rate": 2.5,
+      "nominee": "Anuska Sarkar / Wife",
+      "purpose": "Surplus Money Save",
+      "notes": "",
+      "nominee_notes": ""
+    },
+    {
+      "id": 1794071381652,
+      "bank_name": "HDFC",
+      "account_type": "Salary",
+      "account_no": "50100723057000",
+      "branch_ifsc": "HDFC0008475",
+      "holder_name": "Sayan Sinha",
+      "current_balance": 0.19,
+      "interest_rate": 3,
+      "nominee": "Chhanda Sinha /  Mother",
+      "purpose": "Salary income",
+      "notes": "",
+      "nominee_notes": ""
+    },
+    {
+      "id": 1794071530296,
+      "bank_name": "HDFC",
+      "account_type": "Savings",
+      "account_no": "50100439027855",
+      "branch_ifsc": "HDFC0008475",
+      "holder_name": "Sayan Sinha",
+      "current_balance": 0.37,
+      "interest_rate": 2.5,
+      "nominee": "Chhanda Sinha /  Mother",
+      "purpose": "Investments",
+      "notes": "",
+      "nominee_notes": ""
+    },
+    {
+      "id": 1794073742424,
+      "bank_name": "Kotak",
+      "account_type": "Savings",
+      "account_no": "2052399354",
+      "branch_ifsc": "KKBK0006610",
+      "holder_name": "Sayan Sinha",
+      "current_balance": 596,
+      "interest_rate": 5,
+      "nominee": "",
+      "purpose": "UPI",
+      "notes": "",
+      "nominee_notes": ""
+    },
+    {
+      "id": 1794073822978,
+      "bank_name": "Airtel Payments Bank",
+      "account_type": "Savings",
+      "account_no": "9046479044",
+      "branch_ifsc": "AIRP0000001",
+      "holder_name": "Sayan Sinha",
+      "current_balance": 4710,
+      "interest_rate": 0,
+      "nominee": "",
+      "purpose": "UPI Extra",
+      "notes": "",
+      "nominee_notes": ""
+    }
+  ],
+  "credit_cards": [],
+  "tax_profile": {
+    "fy": "2025-26",
+    "age_group": "below_60",
+    "preferred_regime": "auto",
+    "is_salaried": true,
+    "gross_salary": 0,
+    "interest_income": 0,
+    "rental_income": 0,
+    "other_income": 0,
+    "hra_exemption": 0,
+    "professional_tax": 2400,
+    "home_loan_interest_24b": 0,
+    "sec_80c": 150000,
+    "sec_80ccd_1b_nps": 0,
+    "sec_80ccd_2_employer_nps": 0,
+    "sec_80d_health": 98169,
+    "sec_80tta_savings": 0,
+    "other_deductions_80e_80g": 0,
+    "tds_deducted": 0,
+    "advance_tax_paid": 0
+  },
+  "vehicle_insurance": [],
+  "home_loan_insurance": [
+    {
+      "id": 1794074881365,
+      "insurer": "SBI General",
+      "policy_name": "Griha Raksha Plus",
+      "policy_type": "Loan Protection",
+      "asset_ref": "SBI Home Loan",
+      "insured_person": "1",
+      "nominee_person": "NA",
+      "sum_insured": 4000000,
+      "annual_premium": 18500,
+      "policy_no": "POBGRP0200419168",
+      "start_date": "2025-03-28",
+      "end_date": "2045-03-27"
+    }
+  ]
+}

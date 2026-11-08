@@ -1,0 +1,121 @@
+<%# app/components/asset_allocation_chart_component.html.erb %>
+<div class="rounded-2xl bg-slate-900/80 backdrop-blur-xl p-6 border border-slate-800 shadow-2xl">
+  <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-800">
+    <div>
+      <h3 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">Asset Allocation Breakdown</h3>
+      <p class="text-xs text-slate-500">Target diversification across equities, fixed yields, and statutory savings</p>
+    </div>
+    <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-950/70 border border-indigo-800/40 text-indigo-400 font-medium">
+      Diversified Portfolio
+    </span>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+    <!-- SVG Interactive Donut Visualization -->
+    <div class="lg:col-span-4 flex flex-col items-center justify-center p-4">
+      <div class="relative w-44 h-44 flex items-center justify-center">
+        <svg class="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+          <!-- Background track -->
+          <circle cx="50" cy="50" r="38" class="text-slate-800" stroke-width="8" stroke="currentColor" fill="transparent" />
+
+          <!-- Mutual Funds Arc (Indigo) -->
+          <circle cx="50" cy="50" r="38"
+                  class="text-indigo-500 transition-all duration-1000 ease-out"
+                  stroke-width="8"
+                  stroke-dasharray="<%= mf_dash %> <%= CIRCUMFERENCE %>"
+                  stroke-dashoffset="0"
+                  stroke-linecap="round"
+                  stroke="currentColor"
+                  fill="transparent" />
+
+          <!-- Fixed Income Arc (Emerald) -->
+          <circle cx="50" cy="50" r="38"
+                  class="text-emerald-500 transition-all duration-1000 ease-out"
+                  stroke-width="8"
+                  stroke-dasharray="<%= fi_dash %> <%= CIRCUMFERENCE %>"
+                  stroke-dashoffset="<%= fi_offset %>"
+                  stroke-linecap="round"
+                  stroke="currentColor"
+                  fill="transparent" />
+
+          <!-- Retirement Funds Arc (Amber) -->
+          <circle cx="50" cy="50" r="38"
+                  class="text-amber-500 transition-all duration-1000 ease-out"
+                  stroke-width="8"
+                  stroke-dasharray="<%= ret_dash %> <%= CIRCUMFERENCE %>"
+                  stroke-dashoffset="<%= ret_offset %>"
+                  stroke-linecap="round"
+                  stroke="currentColor"
+                  fill="transparent" />
+        </svg>
+
+        <!-- Donut Center Telemetry -->
+        <div class="absolute flex flex-col items-center justify-center text-center">
+          <span class="text-[10px] uppercase font-semibold text-slate-500 tracking-wider">Total Corpus</span>
+          <span class="text-base font-extrabold text-white font-mono">
+            <%= Core::CurrencyFormatter.format_compact(total_portfolio_value) %>
+          </span>
+          <span class="text-[9px] text-emerald-400 font-mono font-medium">100% Allocated</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Allocation Segments & Metrics -->
+    <div class="lg:col-span-8 space-y-4">
+      <!-- Multi-segment progress bar -->
+      <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden flex gap-1 p-0.5 border border-slate-700/50">
+        <div class="h-full rounded-l-full bg-gradient-to-r from-indigo-500 to-indigo-400 transition-all duration-700"
+             style="width: <%= mutual_funds_pct %>%;"
+             title="Mutual Funds: <%= mutual_funds_pct %>%"></div>
+        <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-700"
+             style="width: <%= fixed_income_pct %>%;"
+             title="Fixed Income: <%= fixed_income_pct %>%"></div>
+        <div class="h-full rounded-r-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-700"
+             style="width: <%= retirement_pct %>%;"
+             title="Retirement Funds: <%= retirement_pct %>%"></div>
+      </div>
+
+      <!-- Detail Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="p-3.5 rounded-xl bg-slate-800/40 border border-slate-800 hover:border-indigo-500/40 transition-colors">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 ring-2 ring-indigo-500/20"></span>
+            <span class="text-xs font-semibold text-slate-300">Mutual Funds</span>
+          </div>
+          <div class="text-base font-bold text-white font-mono">
+            <%= Core::CurrencyFormatter.format_compact(@breakdown[:mutual_funds][:current]) %>
+          </div>
+          <div class="text-[11px] text-indigo-400 font-mono mt-0.5 font-medium">
+            <%= mutual_funds_pct %>% of portfolio
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-800/40 border border-slate-800 hover:border-emerald-500/40 transition-colors">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20"></span>
+            <span class="text-xs font-semibold text-slate-300">Fixed Income</span>
+          </div>
+          <div class="text-base font-bold text-white font-mono">
+            <%= Core::CurrencyFormatter.format_compact(@breakdown[:fixed_income][:current]) %>
+          </div>
+          <div class="text-[11px] text-emerald-400 font-mono mt-0.5 font-medium">
+            <%= fixed_income_pct %>% of portfolio
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-800/40 border border-slate-800 hover:border-amber-500/40 transition-colors">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20"></span>
+            <span class="text-xs font-semibold text-slate-300">Retirement Funds</span>
+          </div>
+          <div class="text-base font-bold text-white font-mono">
+            <%= Core::CurrencyFormatter.format_compact(@breakdown[:retirement][:total]) %>
+          </div>
+          <div class="text-[11px] text-amber-400 font-mono mt-0.5 font-medium">
+            <%= retirement_pct %>% of portfolio
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

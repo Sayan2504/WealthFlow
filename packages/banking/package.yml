@@ -1,0 +1,8 @@
+# packages/banking/package.yml
+enforce_dependencies: true
+enforce_privacy: true
+public_path: app/public
+
+dependencies:
+  - "packages/core"
+

@@ -1,0 +1,8 @@
+# packages/investments/mutual_funds/package.yml
+enforce_dependencies: true
+enforce_privacy: true
+dependencies:
+  - "packages/core"
+metadata:
+  description: "Mutual funds portfolio tracker, NAV feeds, CAGR, and XIRR performance calculation"
+

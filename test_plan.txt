@@ -1,0 +1,19 @@
+PLAN SUMMARY
+1. RESTful JSON API Architecture:
+   - All financial calculators & math logic in Ruby domain services (e.g. FixedIncomeService, RetirementService, TaxPlanningService, MutualFundsService).
+   - API Controllers (Namespaced under /api/v1/):
+     - GET /api/v1/overview
+     - GET /api/v1/mutual_funds, POST, PATCH /:id, DELETE /:id
+     - GET /api/v1/mutual_funds/overlap (Computes holding stock overlap % and list of stocks across funds)
+     - GET /api/v1/fixed_income (FD, RD, Flexi RD calculated values + days left to maturity)
+     - GET /api/v1/retirement (PPF FY grouping, limit status, EPF)
+     - GET /api/v1/insurance (Health, Life, Vehicle, Home Loan protection)
+     - GET /api/v1/banking (Accounts, cards)
+     - GET /api/v1/tax (New vs Old regime comparison)
+     - POST /api/v1/calculators/* (Stateless calculation endpoints so frontend NEVER computes money math)
+2. Frontend Architecture:
+   - Pure ViewComponent architecture with Stimulus controllers.
+   - Stimulus controllers fetch from REST endpoints or submit forms and render responses.
+   - All styling compiled via `tailwindcss-rails` gem.
+   - Chart.js / Chartkick charts powered by server endpoints.
+3. RSpec test suite covering math logic, edge cases, negative values, and overlap algorithms.

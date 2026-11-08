@@ -1,0 +1,6 @@
+# packages/liabilities/home_loan/package.yml
+enforce_dependencies: true
+enforce_privacy: true
+dependencies:
+  - "packages/core"
+

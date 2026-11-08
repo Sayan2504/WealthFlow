@@ -1,0 +1,8 @@
+# packages/investments/fixed_income/package.yml
+enforce_dependencies: true
+enforce_privacy: true
+dependencies:
+  - "packages/core"
+metadata:
+  description: "Fixed Deposits, Recurring Deposits, and Flexi-RD compounding calculation engine"
+

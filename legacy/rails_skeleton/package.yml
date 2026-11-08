@@ -1,0 +1,13 @@
+# package.yml (Root Host Package)
+enforce_dependencies: true
+enforce_privacy: false
+dependencies:
+  - "packages/core"
+  - "packages/dashboard"
+  - "packages/investments/mutual_funds"
+  - "packages/investments/fixed_income"
+  - "packages/investments/retirement_funds"
+  - "packages/insurance/health_insurance"
+  - "packages/insurance/life_insurance"
+  - "packages/liabilities/home_loan"
+

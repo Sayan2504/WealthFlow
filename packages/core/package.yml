@@ -1,0 +1,7 @@
+# packages/core/package.yml
+enforce_dependencies: true
+enforce_privacy: true
+dependencies: []
+metadata:
+  description: "Core financial calculations, unit conversions, and formatting algorithms"
+
