@@ -147,7 +147,11 @@ function renderOverviewPage(ov, data) {
             <div class="text-2xl font-extrabold tracking-tight text-white font-mono">${formatINR(ov.fd.maturity + ov.rd.maturity + ov.flexiRd.maturity)}</div>
             <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full text-emerald-400 bg-emerald-950/80 border border-emerald-800/50 font-mono">+${formatCompact(ov.fd.gain + ov.rd.gain + ov.flexiRd.gain)}</span>
           </div>
-          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+          <div class="mt-2 flex items-center justify-between text-[11px] font-mono">
+            <span class="text-slate-400">Post-Tax Interest:</span>
+            <span class="text-emerald-400 font-bold">+${formatCompact(Math.round((ov.fd.gain + ov.rd.gain + ov.flexiRd.gain) * 0.688))} <span class="text-[9px] text-slate-500 font-sans">(30% slab)</span></span>
+          </div>
+          <div class="mt-2.5 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
             <span>FD: ${formatCompact(ov.fd.maturity)} • RD/Flexi: ${formatCompact(ov.rd.maturity + ov.flexiRd.maturity)}</span>
             <a href="/fixed_income" class="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">Manage →</a>
           </div>
@@ -196,7 +200,8 @@ function renderOverviewPage(ov, data) {
               <span class="text-lg font-extrabold text-white font-mono mt-1 block">${formatINR(ov.fd.maturity)}</span>
               <div class="mt-2 space-y-0.5 text-[11px] text-slate-400 font-mono">
                 <div class="flex justify-between"><span>Principal:</span><span class="text-slate-200">${formatCompact(ov.fd.principal)}</span></div>
-                <div class="flex justify-between"><span>Gain:</span><span class="text-emerald-400">+${formatINR(ov.fd.gain)}</span></div>
+                <div class="flex justify-between"><span>Gross Gain:</span><span class="text-emerald-400">+${formatINR(ov.fd.gain)}</span></div>
+                <div class="flex justify-between text-indigo-300"><span>Post-Tax:</span><span>+${formatCompact(Math.round(ov.fd.gain * 0.688))}</span></div>
                 <div class="flex justify-between"><span>Avg Rate:</span><span class="text-cyan-300">${ov.fd.avgRate.toFixed(2)}%</span></div>
                 <div class="flex justify-between"><span>Next Mat:</span><span class="text-slate-300">${formatDateDMY(ov.fd.nextMaturity)}</span></div>
               </div>
@@ -207,7 +212,8 @@ function renderOverviewPage(ov, data) {
               <span class="text-lg font-extrabold text-white font-mono mt-1 block">${formatINR(ov.rd.maturity)}</span>
               <div class="mt-2 space-y-0.5 text-[11px] text-slate-400 font-mono">
                 <div class="flex justify-between"><span>Invested:</span><span class="text-slate-200">${formatCompact(ov.rd.invested)}</span></div>
-                <div class="flex justify-between"><span>Gain:</span><span class="text-emerald-400">+${formatINR(ov.rd.gain)}</span></div>
+                <div class="flex justify-between"><span>Gross Gain:</span><span class="text-emerald-400">+${formatINR(ov.rd.gain)}</span></div>
+                <div class="flex justify-between text-indigo-300"><span>Post-Tax:</span><span>+${formatCompact(Math.round(ov.rd.gain * 0.688))}</span></div>
                 <div class="flex justify-between"><span>Outflow:</span><span class="text-indigo-300">${formatCompact(ov.rd.monthly)}/m</span></div>
                 <div class="flex justify-between"><span>Last End:</span><span class="text-slate-300">${formatDateDMY(ov.rd.lastEndDate)}</span></div>
               </div>

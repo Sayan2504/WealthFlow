@@ -631,9 +631,12 @@ function renderShell(title, activeNav, content, data) {
         ? Math.round(parseFloat(form.maturity_amount.value))
         : formulaMat;
       const gain = Math.max(0, mat - p);
+      const postTax = Math.max(0, Math.round(gain * (1 - 0.312)));
       document.getElementById('fd-auto-dur').textContent = dur.text;
       document.getElementById('fd-auto-mat').textContent = '₹' + mat.toLocaleString('en-IN');
       document.getElementById('fd-auto-gain').textContent = '+₹' + gain.toLocaleString('en-IN');
+      const postTaxEl = document.getElementById('fd-auto-posttax');
+      if (postTaxEl) postTaxEl.textContent = '+₹' + postTax.toLocaleString('en-IN');
     }
 
     function updateRdPreview(recomputeMaturity = true) {
@@ -655,10 +658,13 @@ function renderShell(title, activeNav, content, data) {
         ? Math.round(parseFloat(form.maturity_amount.value))
         : formulaMat;
       const gain = Math.max(0, mat - totAmt);
+      const postTax = Math.max(0, Math.round(gain * (1 - 0.312)));
       document.getElementById('rd-auto-dur').textContent = dur.text;
       document.getElementById('rd-auto-tot').textContent = '₹' + totAmt.toLocaleString('en-IN');
       document.getElementById('rd-auto-mat').textContent = '₹' + mat.toLocaleString('en-IN');
       document.getElementById('rd-auto-gain').textContent = '+₹' + gain.toLocaleString('en-IN');
+      const postTaxEl = document.getElementById('rd-auto-posttax');
+      if (postTaxEl) postTaxEl.textContent = '+₹' + postTax.toLocaleString('en-IN');
     }
 
     function updateFlexiRdPreview(recomputeMaturity = true, recomputeDeposited = false) {
@@ -687,11 +693,63 @@ function renderShell(title, activeNav, content, data) {
         ? Math.round(parseFloat(form.maturity_amount.value))
         : formulaMat;
       const gain = Math.max(0, mat - totDep);
+      const postTax = Math.max(0, Math.round(gain * (1 - 0.312)));
       document.getElementById('frd-auto-dur').textContent = dur.text;
       document.getElementById('frd-auto-tot').textContent = '₹' + totDep.toLocaleString('en-IN');
       document.getElementById('frd-auto-mat').textContent = '₹' + mat.toLocaleString('en-IN');
       document.getElementById('frd-auto-gain').textContent = '+₹' + gain.toLocaleString('en-IN');
+      const postTaxEl = document.getElementById('frd-auto-posttax');
+      if (postTaxEl) postTaxEl.textContent = '+₹' + postTax.toLocaleString('en-IN');
     }
+
+    function setFiTaxSlab(slabPct) {
+      const slab = parseFloat(slabPct) || 0;
+      const effRate = slab > 0 ? (slab / 100) * 1.04 : 0;
+
+      // Update slab selector button styles
+      document.querySelectorAll('.fi-slab-btn').forEach(btn => {
+        const btnSlab = parseFloat(btn.textContent);
+        if (btnSlab === slab) {
+          btn.className = 'fi-slab-btn px-2.5 py-1 text-xs font-mono font-semibold rounded-lg bg-emerald-600 text-white shadow-md shadow-emerald-600/30 transition-all';
+        } else {
+          btn.className = 'fi-slab-btn px-2.5 py-1 text-xs font-mono font-semibold rounded-lg text-slate-400 hover:text-white transition-all';
+        }
+      });
+
+      // Update hero banner totals
+      const grossTotal = parseFloat(window.FI_GROSS_INTEREST) || 0;
+      const avgRate = parseFloat(window.FI_AVG_RATE) || 0;
+      const tax = Math.round(grossTotal * effRate);
+      const postTax = Math.max(0, grossTotal - tax);
+      const postYield = (avgRate * (1 - effRate)).toFixed(2);
+
+      const valEl = document.getElementById('post-tax-interest-val');
+      if (valEl) valEl.textContent = '+₹' + postTax.toLocaleString('en-IN');
+      const taxEl = document.getElementById('post-tax-tax-val');
+      if (taxEl) taxEl.textContent = '-₹' + tax.toLocaleString('en-IN');
+      const yieldEl = document.getElementById('post-tax-yield-badge');
+      if (yieldEl) yieldEl.textContent = 'Yield: ' + postYield + '% net';
+
+      // Update each row in table
+      document.querySelectorAll('.fi-post-tax-cell').forEach(cell => {
+        const gross = parseFloat(cell.getAttribute('data-gross')) || 0;
+        const rowNet = Math.max(0, Math.round(gross * (1 - effRate)));
+        cell.textContent = 'Net: +₹' + rowNet.toLocaleString('en-IN');
+      });
+
+      try {
+        localStorage.setItem('wealthflow_fi_slab', String(slab));
+      } catch(e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const saved = localStorage.getItem('wealthflow_fi_slab');
+        if (saved !== null && typeof setFiTaxSlab === 'function') {
+          setFiTaxSlab(parseFloat(saved));
+        }
+      } catch(e) {}
+    });
 
     function updateInsPreview() {
       const form = document.getElementById('modal-form');
@@ -1440,6 +1498,7 @@ function renderShell(title, activeNav, content, data) {
               <div class="flex justify-between"><span class="text-slate-400">Auto-Calculated Tenure:</span><span id="fd-auto-dur" class="font-mono text-white font-semibold">—</span></div>
               <div class="flex justify-between"><span class="text-slate-400">Compounded Maturity Value:</span><span id="fd-auto-mat" class="font-mono text-cyan-400 font-bold">—</span></div>
               <div class="flex justify-between"><span class="text-slate-400">Guaranteed Interest Gain:</span><span id="fd-auto-gain" class="font-mono text-emerald-400 font-bold">—</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Post-Tax Interest (30% slab + cess):</span><span id="fd-auto-posttax" class="font-mono text-indigo-300 font-bold">—</span></div>
             </div>
             <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
               <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
@@ -1509,6 +1568,7 @@ function renderShell(title, activeNav, content, data) {
               <div class="flex justify-between"><span class="text-slate-400">Total Capital Deposited:</span><span id="rd-auto-tot" class="font-mono text-white font-bold">—</span></div>
               <div class="flex justify-between"><span class="text-slate-400">Compounded Maturity Value:</span><span id="rd-auto-mat" class="font-mono text-cyan-400 font-bold">—</span></div>
               <div class="flex justify-between"><span class="text-slate-400">Interest Gain:</span><span id="rd-auto-gain" class="font-mono text-emerald-400 font-bold">—</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Post-Tax Interest (30% slab + cess):</span><span id="rd-auto-posttax" class="font-mono text-indigo-300 font-bold">—</span></div>
             </div>
             <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
               <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
@@ -1585,6 +1645,7 @@ function renderShell(title, activeNav, content, data) {
               <div class="flex justify-between"><span class="text-slate-400">Total Flexible Capital Deposited:</span><span id="frd-auto-tot" class="font-mono text-white font-bold">—</span></div>
               <div class="flex justify-between"><span class="text-slate-400">Expected Maturity Value:</span><span id="frd-auto-mat" class="font-mono text-cyan-400 font-bold">—</span></div>
               <div class="flex justify-between"><span class="text-slate-400">Estimated Interest Gain:</span><span id="frd-auto-gain" class="font-mono text-emerald-400 font-bold">—</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Post-Tax Interest (30% slab + cess):</span><span id="frd-auto-posttax" class="font-mono text-indigo-300 font-bold">—</span></div>
             </div>
             <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
               <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>

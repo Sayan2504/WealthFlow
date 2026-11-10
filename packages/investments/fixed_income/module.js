@@ -58,7 +58,7 @@ function computeDaysToMaturity(endDateStr) {
   };
 }
 
-function calculateFD(fd) {
+function calculateFD(fd, slabRate = 0.30) {
   const principal = Number(fd.principal) || 0;
   const rate = Number(fd.rate) || 0;
   const dur = computeExactDuration(fd.start_date, fd.maturity_date);
@@ -66,6 +66,10 @@ function calculateFD(fd) {
   const maturity = Number(fd.maturity_amount) > 0 ? Math.round(Number(fd.maturity_amount)) : formulaMaturity;
   const gain = Math.max(0, maturity - principal);
   const countdown = computeDaysToMaturity(fd.maturity_date);
+  const effectiveTaxRate = slabRate > 0 ? slabRate * 1.04 : 0;
+  const tax = Math.round(gain * effectiveTaxRate);
+  const postTaxGain = Math.max(0, gain - tax);
+  const postTaxYield = Number((rate * (1 - effectiveTaxRate)).toFixed(2));
   return {
     principal,
     rate,
@@ -76,11 +80,14 @@ function calculateFD(fd) {
     daysLeftBadgeClass: countdown.badgeClass,
     formulaMaturity,
     maturity,
-    gain
+    gain,
+    tax,
+    postTaxGain,
+    postTaxYield
   };
 }
 
-function calculateRD(rd) {
+function calculateRD(rd, slabRate = 0.30) {
   const monthly = Number(rd.monthly_amount) || 0;
   const rate = Number(rd.rate) || 0;
   const dur = computeExactDuration(rd.start_date, rd.end_date);
@@ -95,6 +102,10 @@ function calculateRD(rd) {
   const maturity = Number(rd.maturity_amount) > 0 ? Math.round(Number(rd.maturity_amount)) : formulaMaturity;
   const gain = Math.max(0, maturity - totalInvested);
   const countdown = computeDaysToMaturity(rd.end_date);
+  const effectiveTaxRate = slabRate > 0 ? slabRate * 1.04 : 0;
+  const tax = Math.round(gain * effectiveTaxRate);
+  const postTaxGain = Math.max(0, gain - tax);
+  const postTaxYield = Number((rate * (1 - effectiveTaxRate)).toFixed(2));
   return {
     monthly,
     rate,
@@ -107,11 +118,14 @@ function calculateRD(rd) {
     totalInvested,
     formulaMaturity,
     maturity,
-    gain
+    gain,
+    tax,
+    postTaxGain,
+    postTaxYield
   };
 }
 
-function calculateFlexiRD(frd) {
+function calculateFlexiRD(frd, slabRate = 0.30) {
   const baseMonthly = Number(frd.base_monthly) || 0;
   const rate = Number(frd.rate) || 0;
   const dur = computeExactDuration(frd.start_date, frd.end_date);
@@ -127,6 +141,10 @@ function calculateFlexiRD(frd) {
   const maturity = Number(frd.maturity_amount) > 0 ? Math.round(Number(frd.maturity_amount)) : formulaMaturity;
   const gain = Math.max(0, maturity - totalDeposited);
   const countdown = computeDaysToMaturity(frd.end_date);
+  const effectiveTaxRate = slabRate > 0 ? slabRate * 1.04 : 0;
+  const tax = Math.round(gain * effectiveTaxRate);
+  const postTaxGain = Math.max(0, gain - tax);
+  const postTaxYield = Number((rate * (1 - effectiveTaxRate)).toFixed(2));
   return {
     baseMonthly,
     totalDeposited,
@@ -139,18 +157,21 @@ function calculateFlexiRD(frd) {
     daysLeftBadgeClass: countdown.badgeClass,
     formulaMaturity,
     maturity,
-    gain
+    gain,
+    tax,
+    postTaxGain,
+    postTaxYield
   };
 }
 
-function summarizeFixedIncome(data) {
+function summarizeFixedIncome(data, slabRate = 0.30) {
   let fdPrincipal = 0;
   let fdMaturity = 0;
   let fdRateSum = 0;
   let nextFdMaturity = null;
   const fds = data.fixed_deposits || [];
   fds.forEach(fd => {
-    const c = calculateFD(fd);
+    const c = calculateFD(fd, slabRate);
     fdPrincipal += c.principal;
     fdMaturity += c.maturity;
     fdRateSum += c.rate;
@@ -170,7 +191,7 @@ function summarizeFixedIncome(data) {
   let totalRdMonths = 0;
   const rds = data.recurring_deposits || [];
   rds.forEach(rd => {
-    const c = calculateRD(rd);
+    const c = calculateRD(rd, slabRate);
     rdMonthlyOutflow += c.monthly;
     rdTotalInvested += c.totalInvested;
     rdExpectedMaturity += c.maturity;
@@ -188,22 +209,45 @@ function summarizeFixedIncome(data) {
   let flexiExpectedMaturity = 0;
   const flexiRds = data.flexi_rds || [];
   flexiRds.forEach(frd => {
-    const c = calculateFlexiRD(frd);
+    const c = calculateFlexiRD(frd, slabRate);
     flexiBaseMonthly += c.baseMonthly;
     flexiTotalDeposited += c.totalDeposited;
     flexiExpectedMaturity += c.maturity;
   });
   const flexiGain = Math.max(0, flexiExpectedMaturity - flexiTotalDeposited);
 
+  const totalGrossGain = fdInterestGain + rdGain + flexiGain;
+  const effectiveTaxRate = slabRate > 0 ? slabRate * 1.04 : 0;
+  const estimatedTax = Math.round(totalGrossGain * effectiveTaxRate);
+  const postTaxGain = Math.max(0, totalGrossGain - estimatedTax);
+  const postTaxYield = Number((fdAvgRate * (1 - effectiveTaxRate)).toFixed(2));
+
   return {
     fd: { principal: fdPrincipal, maturity: fdMaturity, gain: fdInterestGain, avgRate: fdAvgRate, nextMaturity: nextFdMaturity || "—" },
     rd: { monthly: rdMonthlyOutflow, invested: rdTotalInvested, maturity: rdExpectedMaturity, gain: rdGain, lastEndDate: lastRdEndDate || "—", totalMonths: totalRdMonths },
-    flexiRd: { count: flexiRds.length, baseMonthly: flexiBaseMonthly, invested: flexiTotalDeposited, maturity: flexiExpectedMaturity, gain: flexiGain }
+    flexiRd: { count: flexiRds.length, baseMonthly: flexiBaseMonthly, invested: flexiTotalDeposited, maturity: flexiExpectedMaturity, gain: flexiGain },
+    postTax: {
+      slabRate,
+      effectiveTaxRate,
+      totalGrossGain,
+      estimatedTax,
+      postTaxGain,
+      postTaxYield
+    }
   };
 }
 
 function renderFixedIncomePage(data, ov) {
   const flexi = ov.flexiRd || { count: 0, baseMonthly: 0, invested: 0, maturity: 0, gain: 0 };
+  const postTaxInfo = ov.postTax || {
+    slabRate: 0.30,
+    effectiveTaxRate: 0.312,
+    totalGrossGain: (ov.fd.gain + ov.rd.gain + flexi.gain),
+    estimatedTax: Math.round((ov.fd.gain + ov.rd.gain + flexi.gain) * 0.312),
+    postTaxGain: Math.max(0, Math.round((ov.fd.gain + ov.rd.gain + flexi.gain) * (1 - 0.312))),
+    postTaxYield: Number((ov.fd.avgRate * 0.688).toFixed(2))
+  };
+
   return `
     <div class="space-y-8">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
@@ -226,6 +270,59 @@ function renderFixedIncomePage(data, ov) {
           </button>
         </div>
       </div>
+
+      <!-- Post-Tax Interest Intelligence Hero Card -->
+      <div class="glass-card p-6 rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-emerald-950/25 shadow-2xl relative overflow-hidden">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Tax Intelligence</span>
+              <span class="text-xs text-slate-400">Post-Tax Fixed Income Return (Section 194A / Slab Rate)</span>
+            </div>
+            <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
+              How Much Will You Keep After Tax?
+            </h2>
+            <p class="text-xs text-slate-400 max-w-xl leading-relaxed">
+              Interest from Bank FDs & RDs is fully taxable at your personal income tax slab rate under <em>Income from Other Sources</em>. Toggle your marginal slab below to see your net in-hand earnings after slab tax and 4% Health & Education cess.
+            </p>
+          </div>
+
+          <!-- Dynamic Numbers & Slab Switcher -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 bg-slate-950/80 p-4 rounded-xl border border-slate-800 shrink-0">
+            <div>
+              <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">Net After-Tax Interest</span>
+              <span id="post-tax-interest-val" class="text-3xl font-black text-emerald-400 font-mono block mt-0.5">+${formatINR(postTaxInfo.postTaxGain)}</span>
+              <div class="flex items-center gap-2 mt-1 text-[11px] font-mono text-slate-400">
+                <span>Gross: <strong class="text-slate-200">+${formatINR(postTaxInfo.totalGrossGain)}</strong></span>
+                <span>•</span>
+                <span>Tax: <strong id="post-tax-tax-val" class="text-rose-400">-${formatINR(postTaxInfo.estimatedTax)}</strong></span>
+              </div>
+            </div>
+
+            <div class="sm:border-l sm:border-slate-800 sm:pl-6 space-y-2">
+              <div class="flex items-center justify-between gap-3 text-[11px]">
+                <span class="text-slate-400 font-medium">Marginal Slab:</span>
+                <span id="post-tax-yield-badge" class="text-cyan-300 font-mono font-bold">Yield: ${postTaxInfo.postTaxYield.toFixed(2)}% net</span>
+              </div>
+              <!-- Interactive Slab Buttons -->
+              <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800" id="fi-slab-selector">
+                <button type="button" onclick="setFiTaxSlab(0)" class="fi-slab-btn px-2.5 py-1 text-xs font-mono font-semibold rounded-lg text-slate-400 hover:text-white transition-all">0%</button>
+                <button type="button" onclick="setFiTaxSlab(5)" class="fi-slab-btn px-2.5 py-1 text-xs font-mono font-semibold rounded-lg text-slate-400 hover:text-white transition-all">5%</button>
+                <button type="button" onclick="setFiTaxSlab(10)" class="fi-slab-btn px-2.5 py-1 text-xs font-mono font-semibold rounded-lg text-slate-400 hover:text-white transition-all">10%</button>
+                <button type="button" onclick="setFiTaxSlab(15)" class="fi-slab-btn px-2.5 py-1 text-xs font-mono font-semibold rounded-lg text-slate-400 hover:text-white transition-all">15%</button>
+                <button type="button" onclick="setFiTaxSlab(20)" class="fi-slab-btn px-2.5 py-1 text-xs font-mono font-semibold rounded-lg text-slate-400 hover:text-white transition-all">20%</button>
+                <button type="button" onclick="setFiTaxSlab(30)" class="fi-slab-btn px-2.5 py-1 text-xs font-mono font-semibold rounded-lg bg-emerald-600 text-white shadow-md shadow-emerald-600/30 transition-all">30%</button>
+              </div>
+              <span class="text-[10px] text-slate-500 block text-right font-mono">+4% Health & Education cess</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        window.FI_GROSS_INTEREST = ${postTaxInfo.totalGrossGain};
+        window.FI_AVG_RATE = ${ov.fd.avgRate};
+      </script>
 
       <!-- 4 KPI Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -298,7 +395,10 @@ function renderFixedIncomePage(data, ov) {
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold border ${c.daysLeftBadgeClass}">${c.daysLeftLabel}</span>
                       </div>
                     </td>
-                    <td class="px-4 py-4 text-right text-emerald-400 font-semibold">+${formatINR(c.gain)}</td>
+                    <td class="px-4 py-4 text-right font-mono">
+                      <span class="text-emerald-400 font-semibold block">+${formatINR(c.gain)}</span>
+                      <span class="text-[10px] text-slate-400 block fi-post-tax-cell" data-gross="${c.gain}">Net: +${formatINR(c.postTaxGain)}</span>
+                    </td>
                     <td class="px-4 py-4 text-right font-bold text-cyan-300">${formatINR(c.maturity)}</td>
                     <td class="px-5 py-4 text-right font-sans whitespace-nowrap">
                       ${renderRowActionButtons("fd", fd.id, fd.bank + " FD #" + fd.fd_no)}
@@ -360,9 +460,10 @@ function renderFixedIncomePage(data, ov) {
                       <span class="text-[10px] text-slate-500 font-mono block">${formatDateDMY(rd.start_date)} → ${formatDateDMY(rd.end_date)}</span>
                       <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold border ${c.daysLeftBadgeClass}">${c.daysLeftLabel}</span>
                     </td>
-                    <td class="px-4 py-4 text-right font-bold text-cyan-300">
+                    <td class="px-4 py-4 text-right font-bold text-cyan-300 font-mono">
                       ${formatINR(c.maturity)}
-                      <span class="block text-[10px] text-emerald-400">+${formatINR(c.gain)} gain</span>
+                      <span class="block text-[10px] text-emerald-400 font-normal">+${formatINR(c.gain)} gain</span>
+                      <span class="block text-[10px] text-slate-400 font-normal fi-post-tax-cell" data-gross="${c.gain}">Net: +${formatINR(c.postTaxGain)}</span>
                     </td>
                     <td class="px-5 py-4 text-right font-sans whitespace-nowrap">
                       ${renderRowActionButtons("rd", rd.id, rd.bank + " RD #" + rd.rd_no)}
@@ -424,9 +525,10 @@ function renderFixedIncomePage(data, ov) {
                       <span class="text-[10px] text-slate-500 font-mono">${formatDateDMY(frd.start_date)} → ${formatDateDMY(frd.end_date)}</span>
                        <span class="block mt-1"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold border ${c.daysLeftBadgeClass}">${c.daysLeftLabel}</span></span>
                     </td>
-                    <td class="px-4 py-4 text-right font-bold text-cyan-300">
+                    <td class="px-4 py-4 text-right font-bold text-cyan-300 font-mono">
                       ${formatINR(c.maturity)}
-                      <span class="block text-[10px] text-emerald-400">+${formatINR(c.gain)} gain</span>
+                      <span class="block text-[10px] text-emerald-400 font-normal">+${formatINR(c.gain)} gain</span>
+                      <span class="block text-[10px] text-slate-400 font-normal fi-post-tax-cell" data-gross="${c.gain}">Net: +${formatINR(c.postTaxGain)}</span>
                     </td>
                     <td class="px-5 py-4 text-right font-sans whitespace-nowrap">
                       ${renderRowActionButtons("flexi_rd", frd.id, frd.bank + " Flexi RD #" + frd.rd_no)}

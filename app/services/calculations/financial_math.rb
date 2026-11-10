@@ -74,7 +74,7 @@ module Calculations
       end
     end
 
-    def self.calculate_fd(principal:, rate:, start_date:, maturity_date:, custom_maturity_amount: nil)
+    def self.calculate_fd(principal:, rate:, start_date:, maturity_date:, custom_maturity_amount: nil, tax_rate: 0.30)
       p = [principal.to_f, 0.0].max
       r = [rate.to_f, 0.0].max / 100.0
       dur = compute_exact_duration(start_date, maturity_date)
@@ -98,6 +98,11 @@ module Calculations
       gain = [maturity - p.round, 0].max
       countdown = compute_days_to_maturity(maturity_date)
 
+      effective_tax_rate = tax_rate.to_f.positive? ? (tax_rate.to_f * 1.04) : 0.0
+      tax = (gain * effective_tax_rate).round
+      post_tax_gain = [gain - tax, 0].max
+      post_tax_yield = (rate.to_f * (1.0 - effective_tax_rate)).round(2)
+
       {
         principal: p.round,
         rate: rate.to_f,
@@ -109,11 +114,14 @@ module Calculations
         days_left_badge_class: countdown[:badge_class],
         formula_maturity: formula_maturity,
         maturity: maturity,
-        gain: gain
+        gain: gain,
+        tax: tax,
+        post_tax_gain: post_tax_gain,
+        post_tax_yield: post_tax_yield
       }
     end
 
-    def self.calculate_rd(monthly_amount:, rate:, start_date:, end_date:, custom_maturity_amount: nil)
+    def self.calculate_rd(monthly_amount:, rate:, start_date:, end_date:, custom_maturity_amount: nil, tax_rate: 0.30)
       m = [monthly_amount.to_f, 0.0].max
       r = [rate.to_f, 0.0].max / 100.0
       dur = compute_exact_duration(start_date, end_date)
@@ -132,6 +140,11 @@ module Calculations
       gain = [maturity - total_invested, 0].max
       countdown = compute_days_to_maturity(end_date)
 
+      effective_tax_rate = tax_rate.to_f.positive? ? (tax_rate.to_f * 1.04) : 0.0
+      tax = (gain * effective_tax_rate).round
+      post_tax_gain = [gain - tax, 0].max
+      post_tax_yield = (rate.to_f * (1.0 - effective_tax_rate)).round(2)
+
       {
         monthly_amount: m.round,
         rate: rate.to_f,
@@ -145,11 +158,14 @@ module Calculations
         total_invested: total_invested,
         formula_maturity: formula_maturity,
         maturity: maturity,
-        gain: gain
+        gain: gain,
+        tax: tax,
+        post_tax_gain: post_tax_gain,
+        post_tax_yield: post_tax_yield
       }
     end
 
-    def self.calculate_flexi_rd(base_monthly:, total_deposited: nil, rate:, start_date:, end_date:, custom_maturity_amount: nil)
+    def self.calculate_flexi_rd(base_monthly:, total_deposited: nil, rate:, start_date:, end_date:, custom_maturity_amount: nil, tax_rate: 0.30)
       base = [base_monthly.to_f, 0.0].max
       r = [rate.to_f, 0.0].max / 100.0
       dur = compute_exact_duration(start_date, end_date)
@@ -170,6 +186,11 @@ module Calculations
       gain = [maturity - tot_dep, 0].max
       countdown = compute_days_to_maturity(end_date)
 
+      effective_tax_rate = tax_rate.to_f.positive? ? (tax_rate.to_f * 1.04) : 0.0
+      tax = (gain * effective_tax_rate).round
+      post_tax_gain = [gain - tax, 0].max
+      post_tax_yield = (rate.to_f * (1.0 - effective_tax_rate)).round(2)
+
       {
         base_monthly: base.round,
         total_deposited: tot_dep,
@@ -183,7 +204,24 @@ module Calculations
         days_left_badge_class: countdown[:badge_class],
         formula_maturity: formula_maturity,
         maturity: maturity,
-        gain: gain
+        gain: gain,
+        tax: tax,
+        post_tax_gain: post_tax_gain,
+        post_tax_yield: post_tax_yield
+      }
+    end
+
+    def self.calculate_post_tax_interest(gross_interest:, tax_slab: 0.30)
+      gross = [gross_interest.to_f, 0.0].max
+      eff_rate = tax_slab.to_f.positive? ? (tax_slab.to_f * 1.04) : 0.0
+      tax = (gross * eff_rate).round
+      net = [gross - tax, 0.0].max
+      {
+        gross_interest: gross.round,
+        tax_slab: tax_slab.to_f,
+        effective_tax_rate: eff_rate.round(4),
+        estimated_tax: tax,
+        post_tax_interest: net.round
       }
     end
 

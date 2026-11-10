@@ -101,6 +101,28 @@ RSpec.describe Calculations::FinancialMath do
       expect(described_class.calculate_standard_emi(principal: 100_000, annual_rate: 0, tenure_years: 5)).to eq(0)
     end
   end
+
+  describe ".calculate_post_tax_interest" do
+    it "calculates after-tax interest at 30% slab with 4% cess (31.2% effective rate)" do
+      res = described_class.calculate_post_tax_interest(gross_interest: 100_000, tax_slab: 0.30)
+      expect(res[:gross_interest]).to eq(100_000)
+      expect(res[:effective_tax_rate]).to eq(0.312)
+      expect(res[:estimated_tax]).to eq(31_200)
+      expect(res[:post_tax_interest]).to eq(68_800)
+    end
+
+    it "calculates after-tax interest at 20% slab with 4% cess (20.8% effective rate)" do
+      res = described_class.calculate_post_tax_interest(gross_interest: 50_000, tax_slab: 0.20)
+      expect(res[:estimated_tax]).to eq(10_400)
+      expect(res[:post_tax_interest]).to eq(39_600)
+    end
+
+    it "returns zero tax for 0% slab rate" do
+      res = described_class.calculate_post_tax_interest(gross_interest: 50_000, tax_slab: 0.0)
+      expect(res[:estimated_tax]).to eq(0)
+      expect(res[:post_tax_interest]).to eq(50_000)
+    end
+  end
 end
 
 RSpec.describe Calculations::RetirementCalculator do
