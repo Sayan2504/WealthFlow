@@ -1,0 +1,821 @@
+{
+  "generated_at": "2026-11-10T16:00:30.073Z",
+  "source": "packages/investments/fixed_income/module.js",
+  "duration_cases": [
+    {
+      "start": "2024-01-01",
+      "end": "2026-01-01",
+      "result": {
+        "years": 2,
+        "months": 0,
+        "days": 0,
+        "totalMonths": 24,
+        "totalYears": 2,
+        "text": "2 Yrs, 0 Mos, 0 Days"
+      }
+    },
+    {
+      "start": "2024-01-31",
+      "end": "2024-03-01",
+      "result": {
+        "years": 0,
+        "months": 1,
+        "days": -1,
+        "totalMonths": 0.9666666666666667,
+        "totalYears": 0.08059360730593607,
+        "text": "0 Yrs, 1 Mos, -1 Days"
+      }
+    },
+    {
+      "start": "2024-02-29",
+      "end": "2025-02-28",
+      "result": {
+        "years": 0,
+        "months": 11,
+        "days": 30,
+        "totalMonths": 12,
+        "totalYears": 0.9988584474885844,
+        "text": "0 Yrs, 11 Mos, 30 Days"
+      }
+    },
+    {
+      "start": "2025-03-15",
+      "end": "2025-03-14",
+      "result": {
+        "years": 0,
+        "months": 0,
+        "days": 0,
+        "totalMonths": 0,
+        "totalYears": 0,
+        "text": "0 Yrs, 0 Mos, 0 Days"
+      }
+    },
+    {
+      "start": "",
+      "end": "2025-01-01",
+      "result": {
+        "years": 0,
+        "months": 0,
+        "days": 0,
+        "totalMonths": 0,
+        "totalYears": 0,
+        "text": "0 Yrs, 0 Mos, 0 Days"
+      }
+    },
+    {
+      "start": "2023-12-31",
+      "end": "2024-01-01",
+      "result": {
+        "years": 0,
+        "months": 0,
+        "days": 1,
+        "totalMonths": 0.03333333333333333,
+        "totalYears": 0.0027397260273972603,
+        "text": "0 Yrs, 0 Mos, 1 Days"
+      }
+    }
+  ],
+  "fixed_deposits": [
+    {
+      "input": {
+        "id": 201,
+        "bank": "SBI",
+        "fd_no": "45588898601",
+        "principal": 250000,
+        "rate": 6.45,
+        "start_date": "2026-09-21",
+        "maturity_date": "2027-12-09",
+        "maturity_amount": 270240
+      },
+      "output": {
+        "principal": 250000,
+        "rate": 6.45,
+        "durationText": "1 Yrs, 2 Mos, 18 Days",
+        "durationObj": {
+          "years": 1,
+          "months": 2,
+          "days": 18,
+          "totalMonths": 14.6,
+          "totalYears": 1.2159817351598174,
+          "text": "1 Yrs, 2 Mos, 18 Days"
+        },
+        "formulaMaturity": 270240,
+        "maturity": 270240,
+        "gain": 20240
+      }
+    },
+    {
+      "input": {
+        "id": 202,
+        "bank": "PNB",
+        "fd_no": "054520DP00028943",
+        "principal": 500000,
+        "rate": 6.6,
+        "start_date": "2025-07-29",
+        "maturity_date": "2027-10-16",
+        "maturity_amount": 541451
+      },
+      "output": {
+        "principal": 500000,
+        "rate": 6.6,
+        "durationText": "2 Yrs, 2 Mos, 17 Days",
+        "durationObj": {
+          "years": 2,
+          "months": 2,
+          "days": 17,
+          "totalMonths": 26.566666666666666,
+          "totalYears": 2.21324200913242,
+          "text": "2 Yrs, 2 Mos, 17 Days"
+        },
+        "formulaMaturity": 577976,
+        "maturity": 541451,
+        "gain": 41451
+      }
+    },
+    {
+      "input": {
+        "id": 203,
+        "bank": "HDFC",
+        "fd_no": "50301346662245",
+        "principal": 100000,
+        "rate": 6.45,
+        "start_date": "2025-05-03",
+        "maturity_date": "2027-11-03",
+        "maturity_amount": 110102
+      },
+      "output": {
+        "principal": 100000,
+        "rate": 6.45,
+        "durationText": "2 Yrs, 6 Mos, 0 Days",
+        "durationObj": {
+          "years": 2,
+          "months": 6,
+          "days": 0,
+          "totalMonths": 30,
+          "totalYears": 2.5,
+          "text": "2 Yrs, 6 Mos, 0 Days"
+        },
+        "formulaMaturity": 117347,
+        "maturity": 110102,
+        "gain": 10102
+      }
+    },
+    {
+      "input": {
+        "id": 204,
+        "bank": "HDFC",
+        "fd_no": "50301421664925",
+        "principal": 50000,
+        "rate": 4.25,
+        "start_date": "2026-09-21",
+        "maturity_date": "2027-01-01",
+        "maturity_amount": 50594
+      },
+      "output": {
+        "principal": 50000,
+        "rate": 4.25,
+        "durationText": "0 Yrs, 3 Mos, 11 Days",
+        "durationObj": {
+          "years": 0,
+          "months": 3,
+          "days": 11,
+          "totalMonths": 3.3666666666666667,
+          "totalYears": 0.28013698630136985,
+          "text": "0 Yrs, 3 Mos, 11 Days"
+        },
+        "formulaMaturity": 50594,
+        "maturity": 50594,
+        "gain": 594
+      }
+    },
+    {
+      "input": {
+        "id": 205,
+        "bank": "PNB",
+        "fd_no": "166610PU00001356",
+        "principal": 100000,
+        "rate": 6.25,
+        "start_date": "2026-09-10",
+        "maturity_date": "2027-09-10",
+        "maturity_amount": 106398
+      },
+      "output": {
+        "principal": 100000,
+        "rate": 6.25,
+        "durationText": "1 Yrs, 0 Mos, 0 Days",
+        "durationObj": {
+          "years": 1,
+          "months": 0,
+          "days": 0,
+          "totalMonths": 12,
+          "totalYears": 1,
+          "text": "1 Yrs, 0 Mos, 0 Days"
+        },
+        "formulaMaturity": 106398,
+        "maturity": 106398,
+        "gain": 6398
+      }
+    },
+    {
+      "input": {
+        "principal": 100000,
+        "rate": 7.1,
+        "start_date": "2026-01-01",
+        "maturity_date": "2026-04-01"
+      },
+      "output": {
+        "principal": 100000,
+        "rate": 7.1,
+        "durationText": "0 Yrs, 3 Mos, 0 Days",
+        "durationObj": {
+          "years": 0,
+          "months": 3,
+          "days": 0,
+          "totalMonths": 3,
+          "totalYears": 0.25,
+          "text": "0 Yrs, 3 Mos, 0 Days"
+        },
+        "formulaMaturity": 101751,
+        "maturity": 101751,
+        "gain": 1751
+      }
+    },
+    {
+      "input": {
+        "principal": 100000,
+        "rate": 7.1,
+        "start_date": "2024-01-31",
+        "maturity_date": "2026-03-01"
+      },
+      "output": {
+        "principal": 100000,
+        "rate": 7.1,
+        "durationText": "2 Yrs, 1 Mos, -2 Days",
+        "durationObj": {
+          "years": 2,
+          "months": 1,
+          "days": -2,
+          "totalMonths": 24.933333333333334,
+          "totalYears": 2.0778538812785388,
+          "text": "2 Yrs, 1 Mos, -2 Days"
+        },
+        "formulaMaturity": 115746,
+        "maturity": 115746,
+        "gain": 15746
+      }
+    },
+    {
+      "input": {
+        "principal": 250000,
+        "rate": 0,
+        "start_date": "2025-01-01",
+        "maturity_date": "2027-01-01"
+      },
+      "output": {
+        "principal": 250000,
+        "rate": 0,
+        "durationText": "2 Yrs, 0 Mos, 0 Days",
+        "durationObj": {
+          "years": 2,
+          "months": 0,
+          "days": 0,
+          "totalMonths": 24,
+          "totalYears": 2,
+          "text": "2 Yrs, 0 Mos, 0 Days"
+        },
+        "formulaMaturity": 250000,
+        "maturity": 250000,
+        "gain": 0
+      }
+    },
+    {
+      "input": {
+        "principal": 0,
+        "rate": 7,
+        "start_date": "2025-01-01",
+        "maturity_date": "2027-01-01"
+      },
+      "output": {
+        "principal": 0,
+        "rate": 7,
+        "durationText": "2 Yrs, 0 Mos, 0 Days",
+        "durationObj": {
+          "years": 2,
+          "months": 0,
+          "days": 0,
+          "totalMonths": 24,
+          "totalYears": 2,
+          "text": "2 Yrs, 0 Mos, 0 Days"
+        },
+        "formulaMaturity": 0,
+        "maturity": 0,
+        "gain": 0
+      }
+    },
+    {
+      "input": {
+        "principal": 50000,
+        "rate": 6.5,
+        "start_date": "2027-01-01",
+        "maturity_date": "2025-01-01"
+      },
+      "output": {
+        "principal": 50000,
+        "rate": 6.5,
+        "durationText": "0 Yrs, 0 Mos, 0 Days",
+        "durationObj": {
+          "years": 0,
+          "months": 0,
+          "days": 0,
+          "totalMonths": 0,
+          "totalYears": 0,
+          "text": "0 Yrs, 0 Mos, 0 Days"
+        },
+        "formulaMaturity": 50000,
+        "maturity": 50000,
+        "gain": 0
+      }
+    },
+    {
+      "input": {
+        "principal": 100000,
+        "rate": 7.5,
+        "start_date": "2024-02-29",
+        "maturity_date": "2029-02-28",
+        "maturity_amount": 145000
+      },
+      "output": {
+        "principal": 100000,
+        "rate": 7.5,
+        "durationText": "4 Yrs, 11 Mos, 30 Days",
+        "durationObj": {
+          "years": 4,
+          "months": 11,
+          "days": 30,
+          "totalMonths": 60,
+          "totalYears": 4.998858447488585,
+          "text": "4 Yrs, 11 Mos, 30 Days"
+        },
+        "formulaMaturity": 144995,
+        "maturity": 145000,
+        "gain": 45000
+      }
+    }
+  ],
+  "recurring_deposits": [
+    {
+      "input": {
+        "id": 301,
+        "bank": "HDFC",
+        "rd_no": "5040 0362 2929 38",
+        "purpose": "Travel",
+        "monthly_amount": 18000,
+        "rate": 7.05,
+        "start_date": "2025-05-10",
+        "end_date": "2026-11-10",
+        "maturity_amount": 342641
+      },
+      "output": {
+        "monthly": 18000,
+        "rate": 7.05,
+        "nMonths": 18,
+        "durationText": "1 Yrs, 6 Mos, 0 Days",
+        "durationObj": {
+          "years": 1,
+          "months": 6,
+          "days": 0,
+          "totalMonths": 18,
+          "totalYears": 1.5,
+          "text": "1 Yrs, 6 Mos, 0 Days"
+        },
+        "totalInvested": 324000,
+        "formulaMaturity": 342587,
+        "maturity": 342641,
+        "gain": 18641
+      }
+    },
+    {
+      "input": {
+        "id": 302,
+        "bank": "HDFC",
+        "rd_no": "5040 0359 7357 57",
+        "purpose": "Sister college fees",
+        "monthly_amount": 5000,
+        "rate": 6.6,
+        "start_date": "2026-04-01",
+        "end_date": "2027-04-01",
+        "maturity_amount": 62056
+      },
+      "output": {
+        "monthly": 5000,
+        "rate": 6.6,
+        "nMonths": 12,
+        "durationText": "1 Yrs, 0 Mos, 0 Days",
+        "durationObj": {
+          "years": 1,
+          "months": 0,
+          "days": 0,
+          "totalMonths": 12,
+          "totalYears": 1,
+          "text": "1 Yrs, 0 Mos, 0 Days"
+        },
+        "totalInvested": 60000,
+        "formulaMaturity": 62177,
+        "maturity": 62056,
+        "gain": 2056
+      }
+    },
+    {
+      "input": {
+        "monthly_amount": 5000,
+        "rate": 6.8,
+        "start_date": "2025-01-10",
+        "end_date": "2027-01-10"
+      },
+      "output": {
+        "monthly": 5000,
+        "rate": 6.8,
+        "nMonths": 24,
+        "durationText": "2 Yrs, 0 Mos, 0 Days",
+        "durationObj": {
+          "years": 2,
+          "months": 0,
+          "days": 0,
+          "totalMonths": 24,
+          "totalYears": 2,
+          "text": "2 Yrs, 0 Mos, 0 Days"
+        },
+        "totalInvested": 120000,
+        "formulaMaturity": 128829,
+        "maturity": 128829,
+        "gain": 8829
+      }
+    },
+    {
+      "input": {
+        "monthly_amount": 2500,
+        "rate": 7.25,
+        "start_date": "2024-05-31",
+        "end_date": "2025-03-15"
+      },
+      "output": {
+        "monthly": 2500,
+        "rate": 7.25,
+        "nMonths": 9,
+        "durationText": "0 Yrs, 9 Mos, 12 Days",
+        "durationObj": {
+          "years": 0,
+          "months": 9,
+          "days": 12,
+          "totalMonths": 9.4,
+          "totalYears": 0.7828767123287671,
+          "text": "0 Yrs, 9 Mos, 12 Days"
+        },
+        "totalInvested": 22500,
+        "formulaMaturity": 23187,
+        "maturity": 23187,
+        "gain": 687
+      }
+    },
+    {
+      "input": {
+        "monthly_amount": 1000,
+        "rate": 0,
+        "start_date": "2025-01-01",
+        "end_date": "2025-01-05"
+      },
+      "output": {
+        "monthly": 1000,
+        "rate": 0,
+        "nMonths": 1,
+        "durationText": "0 Yrs, 0 Mos, 4 Days",
+        "durationObj": {
+          "years": 0,
+          "months": 0,
+          "days": 4,
+          "totalMonths": 0.13333333333333333,
+          "totalYears": 0.010958904109589041,
+          "text": "0 Yrs, 0 Mos, 4 Days"
+        },
+        "totalInvested": 1000,
+        "formulaMaturity": 1000,
+        "maturity": 1000,
+        "gain": 0
+      }
+    }
+  ],
+  "flexi_rds": [
+    {
+      "input": {
+        "id": 1794069536327,
+        "bank": "PNB",
+        "rd_no": "1666107600000627",
+        "purpose": "Flexible Goal",
+        "base_monthly": 100,
+        "total_deposited": 200,
+        "rate": 6.25,
+        "start_date": "2026-10-10",
+        "end_date": "2027-10-10",
+        "maturity_amount": 207
+      },
+      "output": {
+        "baseMonthly": 100,
+        "totalDeposited": 200,
+        "rate": 6.25,
+        "nMonths": 12,
+        "durationText": "1 Yrs, 0 Mos, 0 Days",
+        "durationObj": {
+          "years": 1,
+          "months": 0,
+          "days": 0,
+          "totalMonths": 12,
+          "totalYears": 1,
+          "text": "1 Yrs, 0 Mos, 0 Days"
+        },
+        "formulaMaturity": 207,
+        "maturity": 207,
+        "gain": 7
+      }
+    },
+    {
+      "input": {
+        "base_monthly": 3000,
+        "total_deposited": 0,
+        "rate": 6.9,
+        "start_date": "2025-01-01",
+        "end_date": "2026-12-31"
+      },
+      "output": {
+        "baseMonthly": 3000,
+        "totalDeposited": 72000,
+        "rate": 6.9,
+        "nMonths": 24,
+        "durationText": "1 Yrs, 11 Mos, 30 Days",
+        "durationObj": {
+          "years": 1,
+          "months": 11,
+          "days": 30,
+          "totalMonths": 24,
+          "totalYears": 1.9988584474885842,
+          "text": "1 Yrs, 11 Mos, 30 Days"
+        },
+        "formulaMaturity": 77378,
+        "maturity": 77378,
+        "gain": 5378
+      }
+    },
+    {
+      "input": {
+        "base_monthly": 3000,
+        "total_deposited": 85000,
+        "rate": 6.9,
+        "start_date": "2025-01-01",
+        "end_date": "2026-12-31"
+      },
+      "output": {
+        "baseMonthly": 3000,
+        "totalDeposited": 85000,
+        "rate": 6.9,
+        "nMonths": 24,
+        "durationText": "1 Yrs, 11 Mos, 30 Days",
+        "durationObj": {
+          "years": 1,
+          "months": 11,
+          "days": 30,
+          "totalMonths": 24,
+          "totalYears": 1.9988584474885842,
+          "text": "1 Yrs, 11 Mos, 30 Days"
+        },
+        "formulaMaturity": 91349,
+        "maturity": 91349,
+        "gain": 6349
+      }
+    }
+  ],
+  "summary": {
+    "input": {
+      "fixed_deposits": [
+        {
+          "id": 201,
+          "bank": "SBI",
+          "fd_no": "45588898601",
+          "principal": 250000,
+          "rate": 6.45,
+          "start_date": "2026-09-21",
+          "maturity_date": "2027-12-09",
+          "maturity_amount": 270240
+        },
+        {
+          "id": 202,
+          "bank": "PNB",
+          "fd_no": "054520DP00028943",
+          "principal": 500000,
+          "rate": 6.6,
+          "start_date": "2025-07-29",
+          "maturity_date": "2027-10-16",
+          "maturity_amount": 541451
+        },
+        {
+          "id": 203,
+          "bank": "HDFC",
+          "fd_no": "50301346662245",
+          "principal": 100000,
+          "rate": 6.45,
+          "start_date": "2025-05-03",
+          "maturity_date": "2027-11-03",
+          "maturity_amount": 110102
+        },
+        {
+          "id": 204,
+          "bank": "HDFC",
+          "fd_no": "50301421664925",
+          "principal": 50000,
+          "rate": 4.25,
+          "start_date": "2026-09-21",
+          "maturity_date": "2027-01-01",
+          "maturity_amount": 50594
+        },
+        {
+          "id": 205,
+          "bank": "PNB",
+          "fd_no": "166610PU00001356",
+          "principal": 100000,
+          "rate": 6.25,
+          "start_date": "2026-09-10",
+          "maturity_date": "2027-09-10",
+          "maturity_amount": 106398
+        }
+      ],
+      "recurring_deposits": [
+        {
+          "id": 301,
+          "bank": "HDFC",
+          "rd_no": "5040 0362 2929 38",
+          "purpose": "Travel",
+          "monthly_amount": 18000,
+          "rate": 7.05,
+          "start_date": "2025-05-10",
+          "end_date": "2026-11-10",
+          "maturity_amount": 342641
+        },
+        {
+          "id": 302,
+          "bank": "HDFC",
+          "rd_no": "5040 0359 7357 57",
+          "purpose": "Sister college fees",
+          "monthly_amount": 5000,
+          "rate": 6.6,
+          "start_date": "2026-04-01",
+          "end_date": "2027-04-01",
+          "maturity_amount": 62056
+        }
+      ],
+      "flexi_rds": [
+        {
+          "id": 1794069536327,
+          "bank": "PNB",
+          "rd_no": "1666107600000627",
+          "purpose": "Flexible Goal",
+          "base_monthly": 100,
+          "total_deposited": 200,
+          "rate": 6.25,
+          "start_date": "2026-10-10",
+          "end_date": "2027-10-10",
+          "maturity_amount": 207
+        }
+      ]
+    },
+    "output": {
+      "fd": {
+        "principal": 1000000,
+        "maturity": 1078785,
+        "gain": 78785,
+        "avgRate": 6,
+        "nextMaturity": "2027-01-01"
+      },
+      "rd": {
+        "monthly": 23000,
+        "invested": 384000,
+        "maturity": 404697,
+        "gain": 20697,
+        "lastEndDate": "2027-04-01",
+        "totalMonths": 30
+      },
+      "flexiRd": {
+        "count": 1,
+        "baseMonthly": 100,
+        "invested": 200,
+        "maturity": 207,
+        "gain": 7
+      }
+    }
+  },
+  "ppf_fy_cases": [
+    {
+      "date": "2026-03-31",
+      "fy": null,
+      "result": "2025 - 2026"
+    },
+    {
+      "date": "2026-04-01",
+      "fy": null,
+      "result": "2026 - 2027"
+    },
+    {
+      "date": "2025-06-10",
+      "fy": "FY 2025-26",
+      "result": "2025 - 2026"
+    },
+    {
+      "date": "",
+      "fy": null,
+      "result": "2026 - 2027"
+    }
+  ],
+  "ppf_groups": [
+    {
+      "fy": "2021 - 2022",
+      "sortYear": 2021,
+      "totalAmount": 150000,
+      "entries": [
+        {
+          "id": 401,
+          "fy": "2021 - 2022",
+          "date": "2022-03-31",
+          "amount": 150000
+        }
+      ]
+    },
+    {
+      "fy": "2022 - 2023",
+      "sortYear": 2022,
+      "totalAmount": 150000,
+      "entries": [
+        {
+          "id": 402,
+          "fy": "2022 - 2023",
+          "date": "2023-03-31",
+          "amount": 150000
+        }
+      ]
+    },
+    {
+      "fy": "2023 - 2024",
+      "sortYear": 2023,
+      "totalAmount": 150000,
+      "entries": [
+        {
+          "id": 403,
+          "fy": "2023 - 2024",
+          "date": "2024-03-31",
+          "amount": 150000
+        }
+      ]
+    },
+    {
+      "fy": "2024 - 2025",
+      "sortYear": 2024,
+      "totalAmount": 100000,
+      "entries": [
+        {
+          "id": 404,
+          "fy": "2024 - 2025",
+          "date": "2025-03-31",
+          "amount": 100000
+        }
+      ]
+    },
+    {
+      "fy": "2025 - 2026",
+      "sortYear": 2025,
+      "totalAmount": 63500,
+      "entries": [
+        {
+          "id": 405,
+          "fy": "2025 - 2026",
+          "date": "2026-03-31",
+          "amount": 63500
+        }
+      ]
+    },
+    {
+      "fy": "2026 - 2027",
+      "sortYear": 2026,
+      "totalAmount": 150000,
+      "entries": [
+        {
+          "id": 1794045541715,
+          "fy": "2026 - 2027",
+          "date": "2026-11-01",
+          "amount": 13000
+        },
+        {
+          "id": 406,
+          "fy": "2026 - 2027",
+          "date": "2026-11-07",
+          "amount": 137000
+        }
+      ]
+    }
+  ]
+}

@@ -169,6 +169,13 @@ function enrichPortfolioWithMarketRates(data) {
         updated = true;
       }
     }
+
+    // 3. Auto-populate underlying stocks / holdings for each mutual fund
+    if (!Array.isArray(mf.holdings) || mf.holdings.length === 0) {
+      const { getHoldingsForFund } = require("../investments/mutual_funds/overlap");
+      mf.holdings = getHoldingsForFund(mf);
+      updated = true;
+    }
   });
 
   return updated;

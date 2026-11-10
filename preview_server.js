@@ -7,14 +7,21 @@ const { emptyPortfolioData, loadData, saveData } = require("./packages/core/modu
 const { DEFAULT_AMFI_SCHEMES, STATUTORY_RETIREMENT_RATES, fetchSchemeNavByCode } = require("./packages/core/market_api");
 const { buildExcelWorkbook, buildCompleteCsv } = require("./packages/core/exporter");
 const { calculateOverview, renderOverviewPage } = require("./packages/dashboard/module");
-const { renderMutualFundsPage } = require("./packages/investments/mutual_funds/module");
+const { renderMutualFundsPage, renderPairwiseOverlapHtml } = require("./packages/investments/mutual_funds/module");
+const {
+  getHoldingsForFund,
+  fetchLiveStocksFromGoogle,
+  calculatePairwiseOverlap,
+  calculatePortfolioOverlapMatrix,
+  calculateConsolidatedHoldings
+} = require("./packages/investments/mutual_funds/overlap");
 const { renderFixedIncomePage } = require("./packages/investments/fixed_income/module");
 const { renderRetirementPage } = require("./packages/investments/retirement_funds/module");
 const { renderInsurancePage } = require("./packages/insurance/life_insurance/module");
 const { renderBankingPage } = require("./packages/banking/module");
 const { renderTaxCalculatorPage } = require("./packages/tax_planning/module");
 
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 function renderShell(title, activeNav, content, data) {
   const clientDataJson = JSON.stringify(data).replace(/<\//g, "<\\/");
@@ -99,6 +106,31 @@ function renderShell(title, activeNav, content, data) {
     ${content}
   </main>
 
+  <!-- Right Slide-Over Drawer Component -->
+  <div id="drawer-backdrop" onclick="closeDrawer()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 transition-opacity duration-300 opacity-0 pointer-events-none"></div>
+
+  <aside id="right-drawer" class="fixed top-0 bottom-0 right-0 z-50 w-full sm:w-[560px] md:w-[680px] lg:w-[820px] bg-slate-925 border-l border-slate-800 shadow-2xl shadow-black/90 flex flex-col transition-transform duration-300 ease-out translate-x-full">
+    <!-- Drawer Header -->
+    <div class="px-6 py-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-950/70 backdrop-blur-md">
+      <div class="space-y-0.5">
+        <div class="flex items-center gap-2.5">
+          <h3 id="drawer-title" class="text-base font-bold text-white tracking-tight">Detail View</h3>
+          <span id="drawer-badge" class="hidden px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-indigo-950 text-indigo-300 border border-indigo-800/60"></span>
+        </div>
+        <p id="drawer-subtitle" class="text-xs text-slate-400"></p>
+      </div>
+      <button type="button" onclick="closeDrawer()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors" title="Close (Esc)">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    <!-- Drawer Body -->
+    <div id="drawer-body" class="flex-1 overflow-y-auto card-scroll p-6 space-y-6"></div>
+
+    <!-- Drawer Footer (optional) -->
+    <div id="drawer-footer" class="hidden px-6 py-4 border-t border-slate-800 shrink-0 bg-slate-950/50 flex items-center justify-between"></div>
+  </aside>
+
   <!-- Modal Container -->
   <div id="modal-container" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
     <div id="modal-card" class="glass-card rounded-2xl max-w-xl w-full p-6 border border-slate-700 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
@@ -177,7 +209,7 @@ function renderShell(title, activeNav, content, data) {
   <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none"></div>
 
   <!-- Motion.js CDN for Hardware-Accelerated Animations -->
-  <script src="https://cdn.jsdelivr.net/npm/motion@10.18.0/dist/motion.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/motion@11.11.13/dist/motion.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       if (window.Motion) {
@@ -258,8 +290,74 @@ function renderShell(title, activeNav, content, data) {
       });
       document.getElementById('menu-' + id).classList.add('hidden');
       document.getElementById('chevron-' + id).classList.remove('rotate-180', 'text-indigo-400');
-      if (onChangeFnName && window[onChangeFnName]) window[onChangeFnName]();
+      if (onChangeFnName && typeof window[onChangeFnName] === "function") window[onChangeFnName](value, label);
     }
+
+    function openDrawer({ title = "", badge = "", subtitle = "", content = "", footer = "", widthClass = "lg:w-[760px]" }) {
+      const backdrop = document.getElementById("drawer-backdrop");
+      const drawer = document.getElementById("right-drawer");
+      const titleEl = document.getElementById("drawer-title");
+      const badgeEl = document.getElementById("drawer-badge");
+      const subEl = document.getElementById("drawer-subtitle");
+      const bodyEl = document.getElementById("drawer-body");
+      const footerEl = document.getElementById("drawer-footer");
+
+      if (!drawer || !backdrop) return;
+
+      if (titleEl) titleEl.textContent = title;
+      if (badgeEl) {
+        if (badge) {
+          badgeEl.textContent = badge;
+          badgeEl.classList.remove("hidden");
+        } else {
+          badgeEl.classList.add("hidden");
+        }
+      }
+      if (subEl) subEl.textContent = subtitle;
+      if (bodyEl) bodyEl.innerHTML = content;
+      if (footerEl) {
+        if (footer) {
+          footerEl.innerHTML = footer;
+          footerEl.classList.remove("hidden");
+        } else {
+          footerEl.classList.add("hidden");
+        }
+      }
+
+      // Width and position
+      drawer.className = "fixed top-0 bottom-0 right-0 z-50 w-full sm:w-[560px] md:w-[680px] " + widthClass + " bg-slate-925 border-l border-slate-800 shadow-2xl shadow-black/90 flex flex-col transition-transform duration-300 ease-out translate-x-full";
+
+      // Animate in
+      backdrop.classList.remove("pointer-events-none", "opacity-0");
+      backdrop.classList.add("opacity-100");
+
+      void drawer.offsetWidth;
+      drawer.classList.remove("translate-x-full");
+      drawer.classList.add("translate-x-0");
+
+      if (window.Motion) {
+        Motion.animate(drawer, { transform: ["translateX(100%)", "translateX(0%)"] }, { duration: 0.28, easing: [0.16, 1, 0.3, 1] });
+      }
+    }
+
+    function closeDrawer() {
+      const backdrop = document.getElementById("drawer-backdrop");
+      const drawer = document.getElementById("right-drawer");
+      if (!drawer || !backdrop) return;
+
+      backdrop.classList.add("opacity-0", "pointer-events-none");
+      backdrop.classList.remove("opacity-100");
+      drawer.classList.add("translate-x-full");
+      drawer.classList.remove("translate-x-0");
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeDrawer();
+        closeModal();
+        closeConfirmModal();
+      }
+    });
 
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.custom-dropdown')) {
@@ -287,13 +385,13 @@ function renderShell(title, activeNav, content, data) {
       const parts = safeIso.split("-");
       const y = parseInt(parts[0], 10) || 2026;
       const m = (parseInt(parts[1], 10) || 11) - 1;
-      window.DP_STATE[id] = { year: y, month: m, selected: safeIso, onChange: onChangeFnName };
+      window.DP_STATE[id] = { year: y, month: m, selected: safeIso, onChange: onChangeFnName, view: 'days' };
 
       return \`
         <div class="relative custom-datepicker" id="dp-\${id}">
           <input type="hidden" name="\${name}" id="dp-input-\${id}" value="\${safeIso}">
           <button type="button"
-                  onclick="toggleDatePicker('\${id}')"
+                  onclick="toggleDatePicker('\${id}', event)"
                   class="w-full flex items-center justify-between rounded-xl bg-slate-800/90 border border-slate-700/80 px-3.5 py-2.5 text-xs text-white font-mono shadow-inner hover:border-indigo-500/70 focus:outline-none focus:border-indigo-500 transition-all">
             <span id="dp-label-\${id}">\${formatDisplayDate(safeIso)}</span>
             <svg class="w-4 h-4 text-indigo-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -301,7 +399,8 @@ function renderShell(title, activeNav, content, data) {
             </svg>
           </button>
           <div id="dp-pop-\${id}"
-               class="datepicker-popover hidden fixed w-[248px] z-[100] rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 shadow-2xl shadow-black/80 ring-1 ring-white/10 p-3 select-none">
+               onclick="event.stopPropagation()"
+               class="datepicker-popover hidden absolute left-0 top-full mt-2 w-[256px] z-50 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 shadow-2xl shadow-black/80 ring-1 ring-white/10 p-3 select-none">
           </div>
         </div>
       \`;
@@ -373,47 +472,70 @@ function renderShell(title, activeNav, content, data) {
 
     function positionDatePicker(id) {
       const pop = document.getElementById('dp-pop-' + id);
-      const btn = pop && pop.parentElement.querySelector('button');
-      if (!pop || !btn || pop.classList.contains('hidden')) return;
-      const r = btn.getBoundingClientRect();
-      const h = pop.offsetHeight;
-      const w = pop.offsetWidth;
-      const gap = 6;
-      const spaceBelow = window.innerHeight - r.bottom - gap;
-      const spaceAbove = r.top - gap;
-      const openUp = spaceBelow < h && spaceAbove > spaceBelow;
-      let top = openUp ? r.top - h - gap : r.bottom + gap;
-      top = Math.max(8, Math.min(top, window.innerHeight - h - 8));
-      let left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
-      pop.style.top = top + 'px';
-      pop.style.left = left + 'px';
-      pop.style.transformOrigin = openUp ? 'bottom left' : 'top left';
+      const container = document.getElementById('dp-' + id);
+      if (!pop || !container || pop.classList.contains('hidden')) return;
+
+      const cRect = container.getBoundingClientRect();
+      const modal = container.closest('#modal-card');
+      const mRect = modal ? modal.getBoundingClientRect() : { right: window.innerWidth, bottom: window.innerHeight, top: 0, left: 0 };
+
+      // Align right if it would overflow modal or window on the right
+      if (cRect.left + 260 > mRect.right - 10) {
+        pop.style.left = 'auto';
+        pop.style.right = '0px';
+      } else {
+        pop.style.left = '0px';
+        pop.style.right = 'auto';
+      }
+
+      // Flip up if bottom space is constrained inside modal or window
+      const spaceBelow = mRect.bottom - cRect.bottom;
+      const spaceAbove = cRect.top - mRect.top;
+      if (spaceBelow < 280 && spaceAbove > 280) {
+        pop.style.top = 'auto';
+        pop.style.bottom = 'calc(100% + 6px)';
+      } else {
+        pop.style.top = 'calc(100% + 6px)';
+        pop.style.bottom = 'auto';
+      }
     }
 
     window.addEventListener('resize', () => document.querySelectorAll('.datepicker-popover:not(.hidden)').forEach(el => positionDatePicker(el.id.replace('dp-pop-', ''))));
     window.addEventListener('scroll', () => document.querySelectorAll('.datepicker-popover:not(.hidden)').forEach(el => positionDatePicker(el.id.replace('dp-pop-', ''))), true);
 
     function setDatePickerView(id, view) {
+      if (!window.DP_STATE[id]) return;
       window.DP_STATE[id].view = view;
       buildDatePickerGrid(id);
     }
 
-    function toggleDatePicker(id) {
+    function toggleDatePicker(id, ev) {
+      if (ev) ev.stopPropagation();
       const pop = document.getElementById('dp-pop-' + id);
+      if (!pop) return;
       const isHidden = pop.classList.contains('hidden');
       document.querySelectorAll('.datepicker-popover').forEach(el => el.classList.add('hidden'));
       if (isHidden) {
+        if (!window.DP_STATE[id]) {
+          const input = document.getElementById('dp-input-' + id);
+          const initial = input ? input.value : '2026-11-07';
+          const parts = initial.split('-');
+          window.DP_STATE[id] = { year: parseInt(parts[0], 10) || 2026, month: (parseInt(parts[1], 10) || 11) - 1, selected: initial, view: 'days' };
+        }
         window.DP_STATE[id].view = 'days';
         pop.classList.remove('hidden');
         buildDatePickerGrid(id);
         if (window.Motion) {
-          Motion.animate(pop, { opacity: [0, 1], scale: [0.97, 1] }, { duration: 0.16, easing: "ease-out" });
+          try {
+            Motion.animate(pop, { opacity: [0, 1], scale: [0.97, 1] }, { duration: 0.16, easing: "ease-out" });
+          } catch(e) {}
         }
       }
     }
 
     function shiftDatePickerMonth(id, delta) {
       const st = window.DP_STATE[id];
+      if (!st) return;
       if (st.view === 'years') { st.year += delta * 12; }
       else if (st.view === 'months') { st.year += delta; }
       else {
@@ -426,6 +548,7 @@ function renderShell(title, activeNav, content, data) {
 
     function setDatePickerMonthYear(id, mVal, yVal) {
       const st = window.DP_STATE[id];
+      if (!st) return;
       if (mVal !== null) st.month = parseInt(mVal, 10);
       if (yVal !== null) st.year = parseInt(yVal, 10);
       st.view = 'days';
@@ -434,14 +557,19 @@ function renderShell(title, activeNav, content, data) {
 
     function selectDatePickerDay(id, iso) {
       const st = window.DP_STATE[id];
-      st.selected = iso;
-      const parts = iso.split("-");
-      st.year = parseInt(parts[0], 10);
-      st.month = parseInt(parts[1], 10) - 1;
-      document.getElementById('dp-input-' + id).value = iso;
-      document.getElementById('dp-label-' + id).textContent = formatDisplayDate(iso);
-      document.getElementById('dp-pop-' + id).classList.add('hidden');
-      if (st.onChange && window[st.onChange]) window[st.onChange]();
+      if (st) {
+        st.selected = iso;
+        const parts = iso.split("-");
+        st.year = parseInt(parts[0], 10);
+        st.month = parseInt(parts[1], 10) - 1;
+      }
+      const inp = document.getElementById('dp-input-' + id);
+      if (inp) inp.value = iso;
+      const lbl = document.getElementById('dp-label-' + id);
+      if (lbl) lbl.textContent = formatDisplayDate(iso);
+      const pop = document.getElementById('dp-pop-' + id);
+      if (pop) pop.classList.add('hidden');
+      if (st && st.onChange && typeof window[st.onChange] === 'function') window[st.onChange]();
     }
 
     function clientDuration(startStr, endStr) {
@@ -2007,6 +2135,179 @@ function renderShell(title, activeNav, content, data) {
       setTimeout(() => location.reload(), 300);
     }
 
+    function toggleFundDrawer(id) {
+      const drawer = document.getElementById("holdings-drawer-" + id);
+      const arrow = document.getElementById("drawer-arrow-" + id);
+      if (!drawer) return;
+      if (drawer.classList.contains("hidden")) {
+        drawer.classList.remove("hidden");
+        if (arrow) arrow.textContent = "▲";
+      } else {
+        drawer.classList.add("hidden");
+        if (arrow) arrow.textContent = "▼";
+      }
+    }
+
+    function switchOverlapTab(tab) {
+      const tabs = ["pairwise", "matrix", "consolidated"];
+      tabs.forEach(t => {
+        const view = document.getElementById("overlap-view-" + t);
+        const btn = document.getElementById("tab-btn-" + t);
+        if (view) {
+          if (t === tab) view.classList.remove("hidden");
+          else view.classList.add("hidden");
+        }
+        if (btn) {
+          if (t === tab) {
+            btn.className = "px-4 py-2 rounded-lg font-semibold transition-all bg-indigo-600 text-white shadow-md";
+          } else {
+            btn.className = "px-4 py-2 rounded-lg font-medium text-slate-400 hover:text-white transition-all";
+          }
+        }
+      });
+    }
+
+    async function onOverlapFundSelectionChange() {
+      const selA = document.getElementById("overlap-select-a");
+      const selB = document.getElementById("overlap-select-b");
+      if (!selA || !selB) return;
+      const idA = selA.value;
+      const idB = selB.value;
+      const target = document.getElementById("pairwise-overlap-result");
+      if (target) {
+        target.innerHTML = '<div class="p-8 text-center text-slate-400 font-mono text-xs flex items-center justify-center gap-2"><svg class="animate-spin w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> <span>Computing pairwise stock overlap...</span></div>';
+      }
+
+      try {
+        const res = await fetch("/api/mutual_funds/overlap?fund_a=" + encodeURIComponent(idA) + "&fund_b=" + encodeURIComponent(idB));
+        if (res.ok) {
+          const result = await res.json();
+          if (target && result.html) target.innerHTML = result.html;
+        } else {
+          if (target) target.innerHTML = '<div class="p-4 text-rose-400 text-xs">Failed to load overlap comparison</div>';
+        }
+      } catch (err) {
+        if (target) target.innerHTML = '<div class="p-4 text-rose-400 text-xs">Error: ' + err.message + '</div>';
+      }
+    }
+
+    function selectMatrixPair(idA, idB) {
+      switchOverlapTab("pairwise");
+      const selA = document.getElementById("overlap-select-a");
+      const selB = document.getElementById("overlap-select-b");
+      if (selA) selA.value = idA;
+      if (selB) selB.value = idB;
+      onOverlapFundSelectionChange();
+      const el = document.getElementById("overlap-view-pairwise");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function openAddStockModal(fundId, fundName) {
+      const modal = document.getElementById("modal-container");
+      const title = document.getElementById("modal-title");
+      const body = document.getElementById("modal-body");
+      modal.classList.remove("hidden");
+      title.textContent = "Add Constituent Stock to " + fundName;
+      body.innerHTML = \`
+        <form id="modal-form" onsubmit="submitAddStock(event, \${fundId})" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Company / Stock Name</label>
+              <input type="text" name="stock" required placeholder="e.g. Tata Motors Ltd" class="w-full rounded-xl bg-slate-800 border border-slate-700 px-3.5 py-2 text-white text-xs focus:border-indigo-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Stock Ticker / Symbol</label>
+              <input type="text" name="ticker" required placeholder="e.g. TATAMOTORS" class="w-full rounded-xl bg-slate-800 border border-slate-700 px-3.5 py-2 text-white text-xs font-mono uppercase focus:border-indigo-500 focus:outline-none">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Industry Sector</label>
+              <input type="text" name="sector" placeholder="e.g. Automobile" class="w-full rounded-xl bg-slate-800 border border-slate-700 px-3.5 py-2 text-white text-xs focus:border-indigo-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Portfolio Weight in Scheme (%)</label>
+              <input type="number" step="0.1" min="0.1" max="100" name="weight" required placeholder="4.5" class="w-full rounded-xl bg-slate-800 border border-slate-700 px-3.5 py-2 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none">
+            </div>
+          </div>
+          <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500">Save Stock Holding</button>
+          </div>
+        </form>
+      \`;
+    }
+
+    async function submitAddStock(event, fundId) {
+      event.preventDefault();
+      const form = event.target;
+      const stock = form.stock.value.trim();
+      const ticker = form.ticker.value.trim().toUpperCase();
+      const sector = form.sector.value.trim() || "General Equity";
+      const weight = parseFloat(form.weight.value) || 0;
+
+      closeModal();
+      const res = await fetch("/api/mutual_funds/add_stock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fund_id: fundId, stock, ticker, sector, weight })
+      });
+
+      if (res.ok) {
+        showToast("Added " + stock + " (" + weight + "%) to fund holdings!", "success");
+        setTimeout(() => location.reload(), 250);
+      } else {
+        showToast("Failed to save stock holding", "info");
+      }
+    }
+
+    async function deleteStockFromFund(fundId, ticker) {
+      if (!confirm("Remove holding " + ticker + " from this mutual fund?")) return;
+      const res = await fetch("/api/mutual_funds/delete_stock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fund_id: fundId, ticker })
+      });
+      if (res.ok) {
+        showToast("Removed holding " + ticker, "info");
+        setTimeout(() => location.reload(), 250);
+      } else {
+        showToast("Failed to remove holding", "info");
+      }
+    }
+
+    async function syncAllActualFundStocks() {
+      const btn = document.getElementById("btn-fetch-actual-stocks");
+      if (btn) btn.innerHTML = '<svg class="animate-spin w-3.5 h-3.5 text-emerald-300" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> <span>Fetching from Google / Web...</span>';
+      try {
+        const res = await fetch("/api/mutual_funds/sync_all_stocks", { method: "POST" });
+        if (res.ok) {
+          showToast("Fetched & updated actual stock holdings for all mutual funds from Google / official disclosures!", "success");
+          setTimeout(() => location.reload(), 300);
+        } else {
+          showToast("Failed to fetch live stock holdings", "info");
+        }
+      } catch (err) {
+        showToast("Error: " + err.message, "info");
+      }
+    }
+
+    async function fetchActualStocksForFund(fundId, fundName) {
+      showToast("Fetching actual constituent stocks for " + fundName + " from Google / official factsheet...", "info");
+      try {
+        const res = await fetch("/api/mutual_funds/fetch_live_stocks?id=" + encodeURIComponent(fundId));
+        if (res.ok) {
+          const result = await res.json();
+          showToast("Fetched " + (result.holdings_count || 0) + " actual stocks for " + fundName + " (" + result.source + ")", "success");
+          setTimeout(() => location.reload(), 300);
+        } else {
+          showToast("Could not fetch stocks for " + fundName, "info");
+        }
+      } catch (err) {
+        showToast("Error: " + err.message, "info");
+      }
+    }
+
     function showToast(message, type = "success") {
       const toast = document.getElementById("toast");
       toast.textContent = message;
@@ -2080,6 +2381,129 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (pathname === "/api/mutual_funds/overlap") {
+    const idA = parsedUrl.query.fund_a || parsedUrl.query.fund1;
+    const idB = parsedUrl.query.fund_b || parsedUrl.query.fund2;
+    const fundA = (data.mutual_funds || []).find(x => String(x.id) === String(idA) || String(x.scheme_code) === String(idA));
+    const fundB = (data.mutual_funds || []).find(x => String(x.id) === String(idB) || String(x.scheme_code) === String(idB));
+    if (!fundA || !fundB) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ error: "Please select two valid funds to compute portfolio overlap." }));
+    }
+    const overlap = calculatePairwiseOverlap(fundA, fundB);
+    const html = renderPairwiseOverlapHtml(overlap);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ ...overlap, html }));
+  }
+
+  if (pathname === "/api/mutual_funds/fetch_live_stocks") {
+    const id = parsedUrl.query.id;
+    const fund = (data.mutual_funds || []).find(x => String(x.id) === String(id) || String(x.scheme_code) === String(id));
+    if (!fund) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ error: "Fund not found" }));
+    }
+    fetchLiveStocksFromGoogle(fund.scheme_code, fund.scheme_name).then(result => {
+      if (result && result.holdings) {
+        fund.holdings = result.holdings;
+        fund.holdings_source = result.source;
+        fund.holdings_updated_at = new Date().toISOString().split("T")[0];
+        saveData(data);
+      }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(result));
+    }).catch(err => {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+    });
+    return;
+  }
+
+  if (req.method === "POST" && pathname === "/api/mutual_funds/sync_all_stocks") {
+    const funds = data.mutual_funds || [];
+    const promises = funds.map(f => fetchLiveStocksFromGoogle(f.scheme_code, f.scheme_name).then(result => {
+      if (result && result.holdings) {
+        f.holdings = result.holdings;
+        f.holdings_source = result.source;
+        f.holdings_updated_at = new Date().toISOString().split("T")[0];
+      }
+    }));
+    Promise.all(promises).then(() => {
+      saveData(data);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: true, count: funds.length }));
+    }).catch(err => {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+    });
+    return;
+  }
+
+  if (req.method === "POST" && pathname === "/api/mutual_funds/add_stock") {
+    let body = "";
+    req.on("data", chunk => (body += chunk));
+    req.on("end", () => {
+      try {
+        const { fund_id, stock, ticker, sector, weight } = JSON.parse(body || "{}");
+        const fund = (data.mutual_funds || []).find(x => x.id === Number(fund_id));
+        if (!fund) {
+          res.writeHead(404, { "Content-Type": "application/json" });
+          return res.end(JSON.stringify({ error: "Fund not found" }));
+        }
+        if (!Array.isArray(fund.holdings) || fund.holdings.length === 0) {
+          fund.holdings = getHoldingsForFund(fund);
+        }
+        const cleanTicker = String(ticker || "").trim().toUpperCase();
+        const existingIdx = fund.holdings.findIndex(h => (h.ticker || "").toUpperCase() === cleanTicker);
+        const item = {
+          stock: String(stock || "").trim(),
+          ticker: cleanTicker,
+          sector: String(sector || "General Equity").trim(),
+          weight: Math.max(0, Math.min(100, parseFloat(weight) || 0))
+        };
+        if (existingIdx >= 0) {
+          fund.holdings[existingIdx] = item;
+        } else {
+          fund.holdings.push(item);
+        }
+        saveData(data);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ success: true, holdings: fund.holdings }));
+      } catch (e) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+
+  if (req.method === "POST" && pathname === "/api/mutual_funds/delete_stock") {
+    let body = "";
+    req.on("data", chunk => (body += chunk));
+    req.on("end", () => {
+      try {
+        const { fund_id, ticker } = JSON.parse(body || "{}");
+        const fund = (data.mutual_funds || []).find(x => x.id === Number(fund_id));
+        if (!fund) {
+          res.writeHead(404, { "Content-Type": "application/json" });
+          return res.end(JSON.stringify({ error: "Fund not found" }));
+        }
+        if (!Array.isArray(fund.holdings) || fund.holdings.length === 0) {
+          fund.holdings = getHoldingsForFund(fund);
+        }
+        const cleanTicker = String(ticker || "").trim().toUpperCase();
+        fund.holdings = fund.holdings.filter(h => (h.ticker || "").toUpperCase() !== cleanTicker && (h.stock || "").trim() !== ticker);
+        saveData(data);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ success: true, holdings: fund.holdings }));
+      } catch (e) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+
   if (req.method === "POST" && pathname === "/api/save_step_up") {
     let body = "";
     req.on("data", chunk => (body += chunk));
@@ -2146,6 +2570,10 @@ const server = http.createServer((req, res) => {
           const nav = parseFloat(p.latest_nav) || 0;
           const curVal = parseFloat(p.current_value) || 0;
           const units = parseFloat(p.units) || (nav > 0 && curVal > 0 ? Number((curVal / nav).toFixed(4)) : 0);
+          const existing = editId ? (data.mutual_funds || []).find(x => x.id === editId) : null;
+          const holdings = (existing && Array.isArray(existing.holdings) && existing.holdings.length > 0)
+            ? existing.holdings
+            : getHoldingsForFund({ scheme_code: p.scheme_code, scheme_name: p.scheme_name, category: p.category });
           const item = {
             id: editId || Date.now(),
             scheme_name: p.scheme_name,
@@ -2159,7 +2587,8 @@ const server = http.createServer((req, res) => {
             start_date: p.start_date,
             current_value: curVal,
             invested_amount: parseFloat(p.invested_amount) || 0,
-            step_up_pct: parseFloat(p.step_up_pct) || 0
+            step_up_pct: parseFloat(p.step_up_pct) || 0,
+            holdings
           };
           if (editId) {
             const idx = data.mutual_funds.findIndex(x => x.id === editId);

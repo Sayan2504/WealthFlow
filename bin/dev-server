@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+set -e
+
+# If node is not found, search in ~/.nvm
+if ! command -v node >/dev/null 2>&1; then
+  for nvm_node in "$HOME/.nvm/versions/node"/*/bin/node; do
+    if [ -x "$nvm_node" ]; then
+      export PATH="$(dirname "$nvm_node"):$PATH"
+      break
+    fi
+  done
+fi
+
+exec node preview_server.js "$@"
+

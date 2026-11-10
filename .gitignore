@@ -1,0 +1,23 @@
+# Ignore bundler config.
+/.bundle
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore SQLite databases.
+/storage/*.sqlite3
+/storage/*.sqlite3-journal
+/storage/*.sqlite3-wal
+
+# Ignore vendor bundle
+/vendor/bundle/
+
+# Ignore node_modules
+/node_modules/
+
+# Ignore system files
+.DS_Store
+
