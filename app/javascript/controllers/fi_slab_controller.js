@@ -6,6 +6,12 @@ export default class extends Controller {
     this.reqSeq = 0
     window.__wfStimulusFiSlabActive = true
     window.setFiTaxSlab = (slabRate) => this.applySlab(slabRate)
+
+    const activeBtn = document.querySelector(".fi-slab-btn.bg-indigo-600")
+    if (activeBtn && window.Motion && typeof window.Motion.glidePill === "function") {
+      const group = activeBtn.closest(".wf-glide-group")
+      if (group) window.Motion.glidePill(group, activeBtn, { animate: false })
+    }
   }
 
   disconnect() {
@@ -31,8 +37,14 @@ export default class extends Controller {
           ? "bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/25"
           : "bg-slate-900/80 text-slate-300 border-slate-700 hover:border-indigo-500/50")
     })
-    if (window.Motion && typeof window.Motion.waveGroup === "function" && activeBtn) {
-      window.Motion.waveGroup(slabBtns, activeBtn)
+    if (activeBtn && window.Motion) {
+      const group = activeBtn.closest(".wf-glide-group")
+      if (group && typeof window.Motion.glidePill === "function") {
+        window.Motion.glidePill(group, activeBtn)
+      }
+      if (typeof window.Motion.waveGroup === "function") {
+        window.Motion.waveGroup(slabBtns, activeBtn)
+      }
     }
 
     const seq = ++this.reqSeq
@@ -88,7 +100,7 @@ export default class extends Controller {
     if (window.Motion && typeof window.Motion.wave === "function") {
       const targets = [taxEl, netEl, yieldEl, ...updatedCells].filter(Boolean)
       if (targets.length) {
-        window.Motion.wave(targets, { opacity: [0.55, 1], y: [5, 0], step: 0.02, duration: 0.28 })
+        window.Motion.wave(targets, { opacity: [0.55, 1], y: [5, 0], step: 0.035, duration: 0.44 })
       }
     }
   }

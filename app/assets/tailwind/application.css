@@ -48,7 +48,7 @@ body {
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.28s;
+  animation-duration: 0.45s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -59,7 +59,7 @@ html.wf-theme-curtain::view-transition-old(root) {
 
 html.wf-theme-curtain::view-transition-new(root) {
   z-index: 2;
-  animation: wf-curtain-from-top 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: wf-curtain-from-top 0.78s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes wf-curtain-from-top {
@@ -131,6 +131,59 @@ textarea {
   box-shadow: 0 4px 12px -4px var(--wf-accent-soft);
 }
 
+/* Gliding active option pill (Motion FLIP shared-layout highlight) */
+.wf-glide-group {
+  position: relative;
+}
+
+.wf-glide-group > .wf-glide-pill {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: 0.5rem;
+  will-change: transform;
+}
+
+.wf-glide-group > button,
+.wf-glide-group > a,
+.wf-glide-item {
+  position: relative;
+  z-index: 1;
+}
+
+.wf-glide-group[data-glide-variant="sidebar"] > .wf-glide-pill {
+  border-radius: 0.75rem;
+  background: rgba(79, 70, 229, 0.24);
+  border: 1px solid rgba(99, 102, 241, 0.45);
+  box-shadow: 0 4px 16px -6px rgba(99, 102, 241, 0.35);
+}
+
+html[data-mode="light"] .wf-glide-group[data-glide-variant="sidebar"] > .wf-glide-pill {
+  background: #e0e7ff;
+  border: 1px solid #6366f1;
+  box-shadow: 0 4px 14px -6px rgba(79, 70, 229, 0.22);
+}
+
+.wf-glide-group[data-glide-variant="accent"] > .wf-glide-pill {
+  border-radius: 0.5rem;
+  background: var(--wf-accent);
+  box-shadow: 0 4px 14px -4px var(--wf-accent-soft);
+}
+
+.wf-glide-group > .wf-glide-active,
+html[data-mode="light"] .wf-glide-group > .wf-glide-active,
+html[data-mode="light"] aside nav a.bg-indigo-600\/25.wf-glide-active,
+html[data-mode="light"] .fi-slab-btn.bg-indigo-600.wf-glide-active {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.wf-glide-group[data-glide-variant="accent"] > .wf-glide-active {
+  color: #ffffff !important;
+}
+
 /* Dark/custom themes (Aurora & future themes from theme.yml) shell surfaces */
 html[data-mode="dark"] .wf-app-shell {
   background-color: var(--wf-bg-primary) !important;
@@ -188,6 +241,13 @@ html[data-mode="light"] .bg-slate-950\/40 {
   background-color: #f8fafc !important;
 }
 
+html[data-mode="light"] #drawer-backdrop,
+html[data-mode="light"] [data-sidebar-target="backdrop"] {
+  background-color: rgba(15, 23, 42, 0.28) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
 html[data-mode="light"] .bg-slate-900,
 html[data-mode="light"] .bg-slate-900\/95,
 html[data-mode="light"] .bg-slate-900\/90,
@@ -203,12 +263,14 @@ html[data-mode="light"] .bg-slate-900\/30 {
 }
 
 html[data-mode="light"] .bg-slate-800,
+html[data-mode="light"] .bg-slate-800\/90,
 html[data-mode="light"] .bg-slate-800\/80,
 html[data-mode="light"] .bg-slate-800\/70,
 html[data-mode="light"] .bg-slate-800\/60,
 html[data-mode="light"] .bg-slate-800\/50,
 html[data-mode="light"] .bg-slate-800\/40,
 html[data-mode="light"] .bg-slate-800\/30,
+html[data-mode="light"] .bg-slate-800\/25,
 html[data-mode="light"] .bg-slate-700,
 html[data-mode="light"] .bg-slate-700\/70 {
   background-color: #e2e8f0 !important;
@@ -220,6 +282,7 @@ html[data-mode="light"] .bg-emerald-950\/70,
 html[data-mode="light"] .bg-emerald-950\/60,
 html[data-mode="light"] .bg-emerald-950\/50,
 html[data-mode="light"] .bg-emerald-950\/40,
+html[data-mode="light"] .bg-emerald-950\/35,
 html[data-mode="light"] .bg-emerald-500\/10,
 html[data-mode="light"] .bg-emerald-500\/15 {
   background-color: #ecfdf5 !important;
@@ -227,13 +290,16 @@ html[data-mode="light"] .bg-emerald-500\/15 {
 
 html[data-mode="light"] .bg-amber-950\/80,
 html[data-mode="light"] .bg-amber-950\/60,
+html[data-mode="light"] .bg-amber-950\/50,
 html[data-mode="light"] .bg-amber-950\/40,
 html[data-mode="light"] .bg-amber-500\/10,
 html[data-mode="light"] .bg-amber-500\/15 {
   background-color: #fffbeb !important;
 }
 
+html[data-mode="light"] .bg-rose-950\/95,
 html[data-mode="light"] .bg-rose-950\/80,
+html[data-mode="light"] .bg-rose-950\/70,
 html[data-mode="light"] .bg-rose-950\/60,
 html[data-mode="light"] .bg-rose-950\/40,
 html[data-mode="light"] .bg-rose-500\/10,
@@ -241,11 +307,32 @@ html[data-mode="light"] .bg-rose-500\/15 {
   background-color: #fff1f2 !important;
 }
 
+html[data-mode="light"] .hover\:bg-rose-900:hover {
+  background-color: #ffe4e6 !important;
+}
+
+html[data-mode="light"] .bg-violet-950\/60,
+html[data-mode="light"] .bg-violet-950\/40,
+html[data-mode="light"] .bg-violet-950\/35,
+html[data-mode="light"] .bg-violet-500\/25,
+html[data-mode="light"] .bg-violet-500\/15,
+html[data-mode="light"] .bg-violet-500\/10,
+html[data-mode="light"] .bg-purple-500\/15,
+html[data-mode="light"] .bg-purple-500\/10 {
+  background-color: #f5f3ff !important;
+}
+
+html[data-mode="light"] .hover\:bg-violet-500\/25:hover {
+  background-color: #ede9fe !important;
+}
+
 html[data-mode="light"] .bg-indigo-950\/75,
 html[data-mode="light"] .bg-indigo-950\/60,
 html[data-mode="light"] .bg-indigo-950\/50,
 html[data-mode="light"] .bg-indigo-950\/40,
+html[data-mode="light"] .bg-indigo-950\/35,
 html[data-mode="light"] .bg-indigo-950\/25,
+html[data-mode="light"] .bg-indigo-600\/30,
 html[data-mode="light"] .bg-indigo-600\/25,
 html[data-mode="light"] .bg-indigo-600\/20,
 html[data-mode="light"] .bg-indigo-500\/30,
@@ -269,9 +356,11 @@ html[data-mode="light"] .bg-sky-500\/10 {
 
 /* Override dark gradient banners in Light Mode */
 html[data-mode="light"] .bg-gradient-to-r.from-emerald-950\/60,
+html[data-mode="light"] .bg-gradient-to-r.from-emerald-950\/35,
 html[data-mode="light"] .bg-gradient-to-r.from-indigo-950\/60,
 html[data-mode="light"] .bg-gradient-to-r.from-indigo-950\/40,
 html[data-mode="light"] .bg-gradient-to-br.from-emerald-950\/40,
+html[data-mode="light"] .bg-gradient-to-br.from-emerald-950\/35,
 html[data-mode="light"] .bg-gradient-to-br.from-amber-950\/40,
 html[data-mode="light"] .bg-gradient-to-br.from-rose-950\/40,
 html[data-mode="light"] .bg-gradient-to-br.from-indigo-950\/60,
@@ -311,6 +400,12 @@ html[data-mode="light"] .border-rose-500\/40 {
 html[data-mode="light"] .border-indigo-500\/30,
 html[data-mode="light"] .border-indigo-500\/40 {
   border-color: #a5b4fc !important;
+}
+
+html[data-mode="light"] .border-violet-500\/30,
+html[data-mode="light"] .border-violet-500\/35,
+html[data-mode="light"] .border-violet-500\/40 {
+  border-color: #c4b5fd !important;
 }
 
 html[data-mode="light"] .text-white,
@@ -359,8 +454,16 @@ html[data-mode="light"] .text-sky-400 {
 html[data-mode="light"] .text-amber-100,
 html[data-mode="light"] .text-amber-200,
 html[data-mode="light"] .text-amber-300,
-html[data-mode="light"] .text-amber-400 {
+html[data-mode="light"] .text-amber-400,
+html[data-mode="light"] .text-orange-300 {
   color: #b45309 !important;
+}
+
+/* Text selection highlight in Light Mode */
+html[data-mode="light"] ::selection,
+html[data-mode="light"]::selection {
+  background-color: #c7d2fe !important;
+  color: #1e1b4b !important;
 }
 
 html[data-mode="light"] .text-rose-100,
@@ -368,6 +471,17 @@ html[data-mode="light"] .text-rose-200,
 html[data-mode="light"] .text-rose-300,
 html[data-mode="light"] .text-rose-400 {
   color: #be123c !important;
+}
+
+html[data-mode="light"] .text-violet-100,
+html[data-mode="light"] .text-violet-200,
+html[data-mode="light"] .text-violet-300,
+html[data-mode="light"] .text-violet-400,
+html[data-mode="light"] .text-purple-100,
+html[data-mode="light"] .text-purple-200,
+html[data-mode="light"] .text-purple-300,
+html[data-mode="light"] .text-purple-400 {
+  color: #6d28d9 !important;
 }
 
 html[data-mode="light"] .hover\:bg-slate-800:hover,
@@ -407,6 +521,9 @@ html[data-mode="light"] input[class*="from-indigo-600"],
 html[data-mode="light"] input[class*="from-emerald-600"],
 html[data-mode="light"] button[class~="bg-emerald-600"],
 html[data-mode="light"] button[class~="bg-rose-600"],
+html[data-mode="light"] button[class~="bg-violet-600"],
+html[data-mode="light"] button[class~="bg-purple-600"],
+html[data-mode="light"] button[class~="bg-cyan-600"],
 html[data-mode="light"] .wf-brand-icon,
 html[data-mode="light"] .wf-cta-solid,
 html[data-mode="light"] .wf-theme-btn-active,
@@ -414,6 +531,9 @@ html[data-mode="light"] a[class~="bg-indigo-600"]:hover,
 html[data-mode="light"] button[class~="bg-indigo-600"]:hover,
 html[data-mode="light"] button[class~="bg-emerald-600"]:hover,
 html[data-mode="light"] button[class~="bg-rose-600"]:hover,
+html[data-mode="light"] button[class~="bg-violet-600"]:hover,
+html[data-mode="light"] button[class~="bg-purple-600"]:hover,
+html[data-mode="light"] button[class~="bg-cyan-600"]:hover,
 html[data-mode="light"] .wf-cta-solid:hover,
 html[data-mode="light"] .wf-theme-btn-active:hover {
   color: #ffffff !important;

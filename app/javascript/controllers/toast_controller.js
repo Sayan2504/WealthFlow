@@ -64,7 +64,7 @@ export default class extends Controller {
       window.Motion.animate(
         toastEl,
         { opacity: [0, 1], x: [24, 0], scale: [0.96, 1] },
-        { duration: 0.46, easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
+        { duration: 0.62, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
       )
     }
 
@@ -78,7 +78,7 @@ export default class extends Controller {
       const anim = window.Motion.animate(
         toastEl,
         { opacity: [1, 0], x: [0, 20] },
-        { duration: 0.36, easing: [0.32, 0, 0.67, 0] }
+        { duration: 0.48, easing: [0.22, 1, 0.36, 1] }
       )
       if (anim && anim.finished) {
         anim.finished.then(() => toastEl.remove()).catch(() => toastEl.remove())

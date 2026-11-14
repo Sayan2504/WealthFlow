@@ -52,6 +52,23 @@ RSpec.describe "WealthFlow Architecture, Security, Devise Isolation, Ransack & Z
       expect(response).to have_http_status(:unauthorized)
     end
 
+    it "requires matching pin_confirmation and Old PIN when updating security PIN" do
+      user = User.create!(name: "PIN Check", email: "pin_check@example.com", password: "Password123!", password_confirmation: "Password123!")
+      sign_in user
+
+      post "/session/pin", params: { pin: "1234", pin_confirmation: "9999" }.to_json, headers: { "CONTENT_TYPE" => "application/json" }
+      expect(response).to have_http_status(:unprocessable_entity)
+
+      post "/session/pin", params: { pin: "1234", pin_confirmation: "1234" }.to_json, headers: { "CONTENT_TYPE" => "application/json" }
+      expect(response).to have_http_status(:ok)
+
+      post "/session/pin", params: { current_pin: "0000", pin: "5678", pin_confirmation: "5678" }.to_json, headers: { "CONTENT_TYPE" => "application/json" }
+      expect(response).to have_http_status(:unauthorized)
+
+      post "/session/pin", params: { current_pin: "1234", pin: "5678", pin_confirmation: "5678" }.to_json, headers: { "CONTENT_TYPE" => "application/json" }
+      expect(response).to have_http_status(:ok)
+    end
+
     it "renders Devise sign-in with Ad Carousel & keeps sign-up/password free of carousel and private data" do
       [new_user_session_path, new_user_password_path].each do |auth_path|
         get auth_path

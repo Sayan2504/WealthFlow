@@ -33,7 +33,7 @@ export default class extends Controller {
       if (vt && vt.finished) {
         vt.finished.finally(() => document.documentElement.classList.remove("wf-theme-curtain"))
       } else {
-        setTimeout(() => document.documentElement.classList.remove("wf-theme-curtain"), 600)
+        setTimeout(() => document.documentElement.classList.remove("wf-theme-curtain"), 850)
       }
     } else {
       commitTheme()
@@ -57,10 +57,19 @@ export default class extends Controller {
       localStorage.setItem("wf_theme", validTheme)
     }
 
+    let activeBtn = null
     this.buttonTargets.forEach((btn) => {
       const isActive = btn.dataset.themeValue === validTheme
+      if (isActive) activeBtn = btn
       btn.setAttribute("aria-pressed", String(isActive))
       btn.classList.toggle("wf-theme-btn-active", isActive)
     })
+
+    if (activeBtn && window.Motion && typeof window.Motion.glidePill === "function") {
+      const group = activeBtn.closest(".wf-glide-group")
+      if (group) {
+        window.Motion.glidePill(group, activeBtn, { animate: persist })
+      }
+    }
   }
 }

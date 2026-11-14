@@ -33,7 +33,7 @@ export default class extends Controller {
         window.Motion.animate(
           this.drawerTarget,
           [{ transform: "translate3d(-100%, 0, 0)" }, { transform: "translate3d(0%, 0, 0)" }],
-          { duration: 0.36, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+          { duration: 0.56, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
         )
       }
     }

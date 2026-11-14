@@ -104,47 +104,161 @@
   }
   window.showToast = showToast;
 
-  function openConfirmDialog(title, message, onProceed) {
-    openDrawer(
-      title || "Confirm Action",
-      "Please review before continuing",
-      `
-        <div class="rounded-2xl bg-rose-950/60 border border-rose-500/30 p-5 flex items-start gap-3">
-          <div class="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-            </svg>
-          </div>
-          <div class="space-y-1">
-            <div class="text-sm font-bold text-white">${escHtml(title || "Confirm Action")}</div>
-            <p class="text-xs text-slate-300 leading-relaxed">${escHtml(message)}</p>
-          </div>
-        </div>
-      `,
-      {
-        footerMode: "confirm",
-        submitLabel: "Confirm",
-        onConfirm: async (btn) => {
-          btn.disabled = true;
-          try {
-            await onProceed();
-          } finally {
-            btn.disabled = false;
-            closeDrawer();
-          }
-        }
-      }
-    );
-  }
+  let activeConfirmCleanup = null;
 
   function closeConfirmDialog() {
-    closeDrawer();
+    if (typeof activeConfirmCleanup === "function") {
+      activeConfirmCleanup();
+      activeConfirmCleanup = null;
+    }
+    const existing = document.getElementById("wf-inline-confirm-pane");
+    if (existing) existing.remove();
   }
+
+  function positionConfirmPane(pane, anchorEl) {
+    const pad = 12;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const rect = pane.getBoundingClientRect();
+
+    if (anchorEl && anchorEl.isConnected) {
+      const a = anchorEl.getBoundingClientRect();
+      if (a.width > 0 || a.height > 0) {
+        let left = a.right - rect.width;
+        if (left < pad) left = a.left;
+        left = Math.max(pad, Math.min(left, vw - rect.width - pad));
+
+        const spaceBelow = vh - a.bottom - pad;
+        const spaceAbove = a.top - pad;
+        let top;
+        if (spaceBelow >= rect.height + 8 || spaceBelow >= spaceAbove) {
+          top = Math.min(a.bottom + 8, vh - rect.height - pad);
+        } else {
+          top = Math.max(pad, a.top - rect.height - 8);
+        }
+        pane.style.left = `${Math.round(left)}px`;
+        pane.style.top = `${Math.round(top)}px`;
+        return;
+      }
+    }
+
+    pane.style.left = `${Math.round(Math.max(pad, (vw - rect.width) / 2))}px`;
+    pane.style.top = `${Math.round(Math.max(pad, (vh - rect.height) / 2))}px`;
+  }
+
+  function openConfirmDialog(title, message, onProceed, options = {}) {
+    closeConfirmDialog();
+
+    const confirmLabel = options.confirmLabel || "Confirm";
+    const step2Prompt = options.step2Prompt || "Please confirm again to complete this action.";
+    const rawEventTarget = typeof window.event !== "undefined" && window.event && window.event.target instanceof Element
+      ? window.event.target.closest("button, a, [role='button']") || window.event.target
+      : null;
+    const anchorEl = options.anchorEl || rawEventTarget || (document.activeElement instanceof Element ? document.activeElement : null);
+
+    const pane = document.createElement("div");
+    pane.id = "wf-inline-confirm-pane";
+    pane.setAttribute("role", "alertdialog");
+    pane.setAttribute("aria-modal", "false");
+    pane.className = "fixed z-[75] w-80 max-w-[calc(100vw-24px)] rounded-2xl bg-slate-900/95 border border-slate-700/90 shadow-2xl p-4 backdrop-blur-xl";
+    pane.addEventListener("click", (e) => e.stopPropagation());
+    document.body.appendChild(pane);
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") closeConfirmDialog();
+    };
+    const onDocClick = (e) => {
+      if (!pane.contains(e.target) && (!anchorEl || !anchorEl.contains(e.target))) {
+        closeConfirmDialog();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const clickTimer = setTimeout(() => {
+      document.addEventListener("click", onDocClick);
+    }, 0);
+
+    activeConfirmCleanup = () => {
+      clearTimeout(clickTimer);
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("click", onDocClick);
+    };
+
+    pane.innerHTML = `
+      <div class="rounded-xl bg-rose-950/60 border border-rose-500/35 p-3.5 flex items-start gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0 mt-0.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+        </div>
+        <div class="space-y-1 min-w-0">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-rose-300">Warning</div>
+          <div class="text-xs font-bold text-white">${escHtml(title || "Confirm Action")}</div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">${escHtml(message)}</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 mt-3">
+        <button type="button" id="wf-confirm-cancel-btn" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer">Cancel</button>
+        <button type="button" id="wf-confirm-final-btn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition-colors cursor-pointer">${escHtml(confirmLabel)}</button>
+      </div>
+    `;
+    positionConfirmPane(pane, anchorEl);
+    pane.querySelector("#wf-confirm-cancel-btn").onclick = () => closeConfirmDialog();
+    const finalBtn = pane.querySelector("#wf-confirm-final-btn");
+    finalBtn.onclick = async () => {
+      finalBtn.disabled = true;
+      try {
+        await onProceed();
+      } finally {
+        finalBtn.disabled = false;
+        closeConfirmDialog();
+      }
+    };
+
+    if (typeof pane.animate === "function") {
+      pane.animate(
+        [
+          { opacity: 0, transform: "translateY(6px) scale(0.95)" },
+          { opacity: 1, transform: "translateY(0) scale(1)" }
+        ],
+        { duration: 240, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }
+      );
+    }
+  }
+
+  window.confirmSignOut = function () {
+    openConfirmDialog(
+      "Sign Out of WealthFlow",
+      "Warning: You are about to sign out of your WealthFlow cockpit. Any unsaved drawer edits will be discarded.",
+      () => {
+        const form = document.getElementById("wf-signout-form");
+        if (form) form.requestSubmit();
+      },
+      {
+        confirmLabel: "Confirm Sign Out",
+        step2Prompt: "Are you sure you want to end your current session and sign out?"
+      }
+    );
+  };
+
+  window.confirmDeleteAccount = function () {
+    openConfirmDialog(
+      "Delete Account Permanently",
+      "Warning: Deleting your account will permanently erase your login and all isolated financial records.",
+      () => {
+        const form = document.getElementById("wf-delete-account-form");
+        if (form) form.requestSubmit();
+      },
+      {
+        confirmLabel: "Yes, Delete Account",
+        step2Prompt: "Final confirmation: This account and all portfolio data cannot be recovered."
+      }
+    );
+  };
 
   window.confirmDeleteItem = function (type, id, label) {
     openConfirmDialog(
       "Delete Record",
-      `Are you sure you want to permanently remove "${label}"?`,
+      `Warning: Are you sure you want to permanently remove "${label}" from your portfolio?`,
       async () => {
         try {
           await apiJson("/api/delete_item", {
@@ -156,6 +270,10 @@
         } catch (err) {
           showToast(err.message, "error");
         }
+      },
+      {
+        confirmLabel: "Yes, Delete Permanently",
+        step2Prompt: `Final confirmation: Permanently delete "${label}"? This action cannot be undone.`
       }
     );
   };
@@ -163,7 +281,7 @@
   window.confirmClearAllData = function () {
     openConfirmDialog(
       "Reset All Portfolio Data?",
-      "This clears all saved investments, deposits, insurance policies and bank accounts in storage/preview_data.json back to an empty slate.",
+      "Warning: This clears all saved investments, deposits, insurance policies and bank accounts back to an empty slate.",
       async () => {
         try {
           await apiJson("/api/clear_data", { method: "POST", body: "{}" });
@@ -172,6 +290,10 @@
         } catch (err) {
           showToast(err.message, "error");
         }
+      },
+      {
+        confirmLabel: "Confirm Reset",
+        step2Prompt: "Final confirmation: All portfolio entries in this workspace will be cleared."
       }
     );
   };
@@ -193,7 +315,7 @@
         window.Motion.animate(
           targetMenu,
           { opacity: [0, 1], y: [-6, 0], scale: [0.985, 1] },
-          { duration: 0.24, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+          { duration: 0.38, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
         );
       }
     }
@@ -289,7 +411,7 @@
       window.Motion.animate(
         pop,
         { opacity: [0, 1], y: [-6, 0], scale: [0.985, 1] },
-        { duration: 0.24, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+        { duration: 0.38, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
       );
     }
   };
@@ -399,7 +521,7 @@
     window.Motion.animate(
       el,
       { opacity: [0.35, 1], y: [6, 0] },
-      { duration: opts.duration || 0.26, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+      { duration: opts.duration || 0.42, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
     );
   }
 
@@ -459,7 +581,7 @@
           window.Motion.animate(
             backdrop,
             [{ opacity: 0 }, { opacity: 1 }],
-            { duration: 0.30, easing: [0.22, 1, 0.36, 1] }
+            { duration: 0.52, easing: [0.22, 1, 0.36, 1] }
           )
         );
         activeDrawerAnims.push(
@@ -469,7 +591,7 @@
               { transform: "translate3d(100%, 0, 0)" },
               { transform: "translate3d(0%, 0, 0)" }
             ],
-            { duration: 0.40, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+            { duration: 0.68, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
           )
         );
         if (bodyEl) {
@@ -480,7 +602,7 @@
                 { opacity: 0.72, transform: "translate3d(0, 8px, 0)" },
                 { opacity: 1, transform: "translate3d(0, 0, 0)" }
               ],
-              { duration: 0.32, delay: 0.08, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+              { duration: 0.48, delay: 0.16, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
             )
           );
         }
@@ -492,7 +614,7 @@
               { opacity: 0.65, transform: "translate3d(0, 6px, 0)" },
               { opacity: 1, transform: "translate3d(0, 0, 0)" }
             ],
-            { duration: 0.24, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+            { duration: 0.38, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
           )
         );
       }
@@ -537,7 +659,7 @@
       const bgAnim = window.Motion.animate(
         backdrop,
         [{ opacity: 1 }, { opacity: 0 }],
-        { duration: 0.26, easing: [0.22, 1, 0.36, 1] }
+        { duration: 0.46, easing: [0.22, 1, 0.36, 1] }
       );
       const panelAnim = window.Motion.animate(
         panel,
@@ -545,13 +667,13 @@
           { transform: "translate3d(0%, 0, 0)" },
           { transform: "translate3d(100%, 0, 0)" }
         ],
-        { duration: 0.30, easing: [0.4, 0, 0.2, 1], fill: "forwards" }
+        { duration: 0.56, easing: [0.22, 1, 0.36, 1], fill: "forwards" }
       );
       activeDrawerAnims.push(bgAnim, panelAnim);
       if (panelAnim && panelAnim.finished) {
         panelAnim.finished.then(finishClose).catch(finishClose);
       }
-      drawerHideTimer = setTimeout(finishClose, 340);
+      drawerHideTimer = setTimeout(finishClose, 620);
     } else {
       isClosingDrawer = false;
       backdrop.classList.add("opacity-0");
@@ -999,8 +1121,14 @@
           ? "bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/25"
           : "bg-slate-900/80 text-slate-300 border-slate-700 hover:border-indigo-500/50");
     });
-    if (window.Motion && typeof window.Motion.waveGroup === "function" && activeBtn) {
-      window.Motion.waveGroup(slabBtns, activeBtn);
+    if (activeBtn && window.Motion) {
+      const group = activeBtn.closest(".wf-glide-group");
+      if (group && typeof window.Motion.glidePill === "function") {
+        window.Motion.glidePill(group, activeBtn);
+      }
+      if (typeof window.Motion.waveGroup === "function") {
+        window.Motion.waveGroup(slabBtns, activeBtn);
+      }
     }
 
     try {
@@ -1597,9 +1725,41 @@
   // ---------------------------------------------------------------------------
   // Security PIN Lock Controls
   // ---------------------------------------------------------------------------
+  const EYE_OPEN_SVG = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`;
+  const EYE_SLASH_SVG = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>`;
+
+  window.wfTogglePinVisibility = function (inputId, btnEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isHidden = input.type === "password";
+    input.type = isHidden ? "text" : "password";
+    if (btnEl) {
+      btnEl.setAttribute("aria-pressed", String(isHidden));
+      btnEl.setAttribute("aria-label", isHidden ? "Hide PIN" : "Show PIN");
+      btnEl.innerHTML = isHidden ? EYE_SLASH_SVG : EYE_OPEN_SVG;
+    }
+  };
+
+  function pinFieldHtml(id, label, placeholder, autocomplete = "off") {
+    return `
+      <div>
+        <label for="${id}" class="block text-[11px] text-slate-400 mb-1">${label}</label>
+        <div class="relative flex items-center">
+          <input type="password" id="${id}" autocomplete="${autocomplete}" placeholder="${escHtml(placeholder)}"
+            class="w-full pl-3 pr-10 py-2 rounded-xl bg-slate-950/90 border border-slate-700/80 text-xs font-mono text-white focus:border-indigo-500 focus:outline-none">
+          <button type="button" onclick="wfTogglePinVisibility('${id}', this)"
+            aria-label="Show PIN" aria-pressed="false" data-no-motion-press
+            class="absolute right-2 p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer">
+            ${EYE_OPEN_SVG}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   window.openSecurityPinModal = function (pinEnabled) {
     activeModalState = { type: "__security_pin", pinEnabled: Boolean(pinEnabled) };
-    const title = pinEnabled ? "Manage Security PIN" : "Set Cockpit Security PIN";
+    const title = pinEnabled ? "Change Security PIN" : "Set Cockpit Security PIN";
     const subtitle = "Protected by bcrypt (PortfolioProfile) and Rack::Attack rate limiting";
 
     openDrawer(
@@ -1607,11 +1767,9 @@
       subtitle,
       `
         <form id="pin-settings-form" onsubmit="event.preventDefault(); submitSecurityPinForm(false);" class="space-y-3">
-          ${pinEnabled ? `<div><label class="block text-[11px] text-slate-400 mb-1">Current PIN</label><input type="password" id="pin-current" class="w-full px-3 py-2 rounded-xl bg-slate-950/90 border border-slate-700/80 text-xs font-mono text-white"></div>` : ""}
-          <div>
-            <label class="block text-[11px] text-slate-400 mb-1">New Security PIN (min 4 chars)</label>
-            <input type="password" id="pin-new" class="w-full px-3 py-2 rounded-xl bg-slate-950/90 border border-slate-700/80 text-xs font-mono text-white" placeholder="Enter 4+ digit PIN">
-          </div>
+          ${pinEnabled ? pinFieldHtml("pin-current", "Old PIN", "Enter your current PIN", "current-password") : ""}
+          ${pinFieldHtml("pin-new", "New PIN (min 4 chars)", "Enter new 4+ character PIN", "new-password")}
+          ${pinFieldHtml("pin-confirm", "Confirm New PIN", "Re-enter new PIN", "new-password")}
           ${pinEnabled ? `<div class="pt-1"><button type="button" onclick="submitSecurityPinForm(true)" class="text-xs text-rose-400 hover:text-rose-300 underline cursor-pointer">Remove Security PIN</button></div>` : ""}
         </form>
       `,
@@ -1620,12 +1778,37 @@
   };
 
   window.submitSecurityPinForm = async function (clearPin = false) {
-    const current_pin = document.getElementById("pin-current")?.value || "";
-    const pin = document.getElementById("pin-new")?.value || "";
+    const currentInput = document.getElementById("pin-current");
+    const newInput = document.getElementById("pin-new");
+    const confirmInput = document.getElementById("pin-confirm");
+
+    const current_pin = currentInput?.value || "";
+    const pin = newInput?.value || "";
+    const pin_confirmation = confirmInput?.value || "";
+
+    if (activeModalState?.pinEnabled && !current_pin.trim()) {
+      showToast("Please enter your Old PIN", "error");
+      currentInput?.focus();
+      return;
+    }
+
+    if (!clearPin) {
+      if (pin.trim().length < 4) {
+        showToast("New PIN must be at least 4 characters", "error");
+        newInput?.focus();
+        return;
+      }
+      if (pin.trim() !== pin_confirmation.trim()) {
+        showToast("New PIN and Confirm New PIN do not match", "error");
+        confirmInput?.focus();
+        return;
+      }
+    }
+
     try {
       const res = await apiJson("/session/pin", {
         method: "POST",
-        body: JSON.stringify({ current_pin, pin, clear: clearPin })
+        body: JSON.stringify({ current_pin, pin, pin_confirmation, clear: clearPin })
       });
       showToast(res.message || "PIN updated");
       closeModal();

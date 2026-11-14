@@ -74,7 +74,7 @@
         </div>
         <p class="text-xs text-slate-400 mt-1">Select your Income Tax slab to see exact tax deduction and post-tax net interest across all FDs, RDs &amp; Flexi RDs</p>
       </div>
-      <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Tax Slab Selector">
+      <div class="wf-glide-group flex flex-wrap items-center gap-1.5" data-glide-variant="accent" role="group" aria-label="Tax Slab Selector">
         <% [0, 5, 10, 15, 20, 30].each do |pct| %>
           <% rate = pct / 100.0 %>
           <% active = (@slab_rate - rate).abs < 0.001 %>

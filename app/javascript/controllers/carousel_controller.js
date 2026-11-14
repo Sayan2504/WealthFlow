@@ -9,35 +9,41 @@ export default class extends Controller {
 
   connect() {
     this.isPaused = false
-    this.showSlide(this.indexValue, false)
+    this._anims = []
+    this.showSlide(this.indexValue, false, 1)
     this.startTimer()
   }
 
   disconnect() {
     this.stopTimer()
+    this._cancelSlideAnimations()
   }
 
   next() {
     const count = this.slideTargets.length
     if (!count) return
-    this.indexValue = (this.indexValue + 1) % count
-    this.showSlide(this.indexValue, true)
+    const prevIdx = this.indexValue
+    this.indexValue = (prevIdx + 1) % count
+    this.showSlide(this.indexValue, true, 1, prevIdx)
     if (!this.isPaused) this.startTimer()
   }
 
   prev() {
     const count = this.slideTargets.length
     if (!count) return
-    this.indexValue = (this.indexValue - 1 + count) % count
-    this.showSlide(this.indexValue, true)
+    const prevIdx = this.indexValue
+    this.indexValue = (prevIdx - 1 + count) % count
+    this.showSlide(this.indexValue, true, -1, prevIdx)
     if (!this.isPaused) this.startTimer()
   }
 
   goTo(event) {
     const idx = Number(event.currentTarget.getAttribute("data-index") || 0)
-    if (Number.isNaN(idx)) return
+    if (Number.isNaN(idx) || idx === this.indexValue) return
+    const prevIdx = this.indexValue
+    const dir = idx > prevIdx ? 1 : -1
     this.indexValue = idx
-    this.showSlide(idx, true)
+    this.showSlide(idx, true, dir, prevIdx)
     if (!this.isPaused) this.startTimer()
   }
 
@@ -51,16 +57,61 @@ export default class extends Controller {
     this.startTimer()
   }
 
-  showSlide(activeIdx, animateTransition) {
+  _cancelSlideAnimations() {
+    if (!this._anims) return
+    this._anims.forEach((a) => {
+      try { a.cancel() } catch (_) {}
+    })
+    this._anims = []
+  }
+
+  showSlide(activeIdx, animateTransition, direction = 1, prevIdx = null) {
+    this._cancelSlideAnimations()
+
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const shouldAnimate = animateTransition && !reduceMotion && prevIdx !== null && prevIdx !== activeIdx
+
     this.slideTargets.forEach((slide, i) => {
-      const active = i === activeIdx
-      slide.classList.toggle("hidden", !active)
-      if (active && animateTransition && window.Motion && typeof window.Motion.animate === "function") {
-        window.Motion.animate(
-          slide,
-          { opacity: [0.25, 1], x: [18, 0] },
-          { duration: 0.42, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+      slide.classList.remove("absolute", "inset-0", "pointer-events-none")
+      slide.style.willChange = ""
+
+      if (i === activeIdx) {
+        slide.classList.remove("hidden")
+        if (shouldAnimate) {
+          slide.style.willChange = "transform, opacity"
+          const anim = slide.animate(
+            [
+              { opacity: 0, transform: `translate3d(${direction * 48}px, 0, 0) scale(0.985)` },
+              { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }
+            ],
+            { duration: 680, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "both" }
+          )
+          anim.onfinish = () => {
+            slide.style.willChange = ""
+            try { anim.cancel() } catch (_) {}
+          }
+          this._anims.push(anim)
+        }
+      } else if (shouldAnimate && i === prevIdx) {
+        slide.classList.remove("hidden")
+        slide.classList.add("absolute", "inset-0", "pointer-events-none")
+        slide.style.willChange = "transform, opacity"
+        const anim = slide.animate(
+          [
+            { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" },
+            { opacity: 0, transform: `translate3d(${-direction * 48}px, 0, 0) scale(0.985)` }
+          ],
+          { duration: 580, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" }
         )
+        anim.onfinish = () => {
+          slide.classList.add("hidden")
+          slide.classList.remove("absolute", "inset-0", "pointer-events-none")
+          slide.style.willChange = ""
+          try { anim.cancel() } catch (_) {}
+        }
+        this._anims.push(anim)
+      } else {
+        slide.classList.add("hidden")
       }
     })
 

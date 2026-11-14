@@ -129,7 +129,7 @@ export default class extends Controller {
       window.Motion.animate(
         [heroNew, heroOld],
         { opacity: [0.65, 1], y: [4, 0] },
-        { duration: 0.28, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+        { duration: 0.44, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
       )
     }
   }

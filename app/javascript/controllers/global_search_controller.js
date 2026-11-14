@@ -55,7 +55,7 @@ export default class extends Controller {
         window.Motion.animate(
           this.inputTarget,
           { opacity: [0.55, 1], x: [5, 0] },
-          { duration: 0.24, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+          { duration: 0.38, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
         )
       }
     }
@@ -71,13 +71,19 @@ export default class extends Controller {
 
   syncModeUi() {
     const isAi = this.modeValue === "ai"
+    let activeBtn = null
     this.modeBtnTargets.forEach((btn) => {
       const active = btn.dataset.searchMode === this.modeValue
+      if (active) activeBtn = btn
       btn.setAttribute("aria-pressed", String(active))
       btn.className = active
         ? "px-2 py-1 rounded-md text-[10px] font-semibold bg-indigo-600 text-white transition-colors cursor-pointer"
         : "px-2 py-1 rounded-md text-[10px] font-medium text-slate-400 hover:text-white transition-colors cursor-pointer"
     })
+    if (activeBtn && window.Motion && typeof window.Motion.glidePill === "function") {
+      const group = activeBtn.closest(".wf-glide-group")
+      if (group) window.Motion.glidePill(group, activeBtn)
+    }
     if (this.hasInputTarget) {
       this.inputTarget.placeholder = isAi
         ? "Ask AI anything about your portfolio & press Enter..."

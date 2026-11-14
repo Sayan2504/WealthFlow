@@ -4,13 +4,15 @@ class SessionsController < ApplicationController
   def set_pin
     body = parsed_body
     pin = (body["pin"] || params[:pin]).to_s.strip
+    has_confirmation = body.key?("pin_confirmation") || params.key?(:pin_confirmation)
+    pin_confirmation = (body["pin_confirmation"] || params[:pin_confirmation]).to_s.strip
     current_pin = (body["current_pin"] || params[:current_pin]).to_s.strip
     clear_flag = body["clear"] == true || body["clear"].to_s == "true" || params[:clear].to_s == "true"
 
     profile = PortfolioProfile.current
 
     if profile.pin_enabled? && !profile.authenticate_pin(current_pin)
-      return render json: { success: false, error: "Current PIN is incorrect" }, status: :unauthorized
+      return render json: { success: false, error: "Old PIN is incorrect" }, status: :unauthorized
     end
 
     if clear_flag
@@ -23,8 +25,12 @@ class SessionsController < ApplicationController
       return render json: { success: false, error: "PIN must be at least 4 characters" }, status: :unprocessable_entity
     end
 
+    if has_confirmation && pin != pin_confirmation
+      return render json: { success: false, error: "New PIN and Confirm New PIN do not match" }, status: :unprocessable_entity
+    end
+
     profile.pin = pin
-    profile.pin_confirmation = pin
+    profile.pin_confirmation = has_confirmation ? pin_confirmation : pin
     profile.save!
     session[:wealthflow_locked] = false
 
