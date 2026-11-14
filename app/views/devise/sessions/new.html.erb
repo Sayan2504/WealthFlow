@@ -1,0 +1,68 @@
+<div class="max-w-5xl mx-auto space-y-6 py-4" data-controller="motion">
+  <%= render "shared/ad_carousel", signed_in: false %>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div class="lg:col-span-7 glass-card rounded-2xl p-6 sm:p-8" data-motion-item>
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-white">Sign in to WealthFlow</h1>
+          <p class="text-xs text-slate-400">Encrypted per-user portfolio workspace &amp; authenticated API vault</p>
+        </div>
+      </div>
+
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-4" }) do |f| %>
+        <div>
+          <%= f.label :email, class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true, placeholder: "sayan@wealthflow.in",
+                class: "w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" %>
+        </div>
+
+        <div>
+          <%= f.label :password, class: "block text-xs font-medium text-slate-300 mb-1" %>
+          <%= f.password_field :password, autocomplete: "current-password", required: true, placeholder: "••••••••",
+                class: "w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" %>
+        </div>
+
+        <% if devise_mapping.rememberable? %>
+          <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+            <%= f.check_box :remember_me, class: "rounded bg-slate-950 border-slate-700 text-indigo-500 focus:ring-indigo-500" %>
+            <span>Keep me signed in on this device</span>
+          </label>
+        <% end %>
+
+        <%= f.submit "Sign In to Portfolio Vault",
+              class: "w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all cursor-pointer" %>
+      <% end %>
+
+      <%= render "devise/shared/links" %>
+    </div>
+
+    <div class="lg:col-span-5 space-y-4" data-motion-item>
+      <div class="glass-card rounded-2xl p-5 border border-indigo-500/30">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-indigo-300 mb-2">Primary Demo Workspace</div>
+        <p class="text-xs text-slate-300 leading-relaxed mb-3">
+          Sign in with the primary workspace credentials or create a brand-new isolated account via <span class="text-emerald-300 font-medium">Create new account</span>.
+        </p>
+        <div class="rounded-xl bg-slate-950/80 border border-slate-800 p-3 font-mono text-xs space-y-1">
+          <div><span class="text-slate-400">Email:</span> <span class="text-cyan-300 select-all">sayan@wealthflow.in</span></div>
+          <div><span class="text-slate-400">Password:</span> <span class="text-emerald-300 select-all">WealthFlow@2026</span></div>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 space-y-2.5">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Private Portfolio Guarantees</div>
+        <ul class="space-y-1.5 text-xs text-slate-300">
+          <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>All yields, SIPs, and tax liabilities computed strictly server-side</li>
+          <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>100% private per-account financial vault with zero cross-user visibility</li>
+          <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>Automated brute-force sign-in throttling &amp; optional quick-lock PIN</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+

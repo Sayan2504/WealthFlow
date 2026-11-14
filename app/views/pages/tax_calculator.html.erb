@@ -1,0 +1,249 @@
+<% content_for :title, "WealthFlow — Income Tax & ITR Comparison Calculator" %>
+
+<div class="space-y-6" data-controller="tax-planner">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">Income Tax &amp; ITR Planner</h1>
+      <p class="text-xs text-slate-400 mt-1">New Regime (Sec 115BAC Budget 2025 slabs) vs Old Regime side-by-side comparison, 87A Rebate &amp; Marginal Relief</p>
+    </div>
+    <button type="button" id="save-tax-profile-btn" onclick="saveTaxProfile()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25 transition-colors">
+      Save Tax Profile
+    </button>
+  </div>
+
+  <!-- Recommended Regime Hero -->
+  <section class="glass-card rounded-2xl p-5 border-emerald-500/30 bg-gradient-to-r from-emerald-950/35 via-slate-900/90 to-indigo-950/30">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="text-xs uppercase tracking-wider font-semibold text-emerald-300">Optimal Regime Recommendation</div>
+        <div id="tax-rec-headline" class="text-xl font-bold text-white mt-1">
+          <%= @tax_calc[:recommendedRegime].to_s.upcase %> REGIME saves <%= format_inr(@tax_calc[:taxSavings]) %>
+        </div>
+        <div id="tax-rec-sub" class="text-xs text-slate-300 mt-0.5">
+          Gross Income: <span class="font-mono font-semibold"><%= format_inr(@tax_calc[:grossTotalIncome]) %></span> • Taxes Paid (TDS + Adv): <span class="font-mono"><%= format_inr(@tax_calc[:totalTaxesPaid]) %></span>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 text-right">
+        <div class="rounded-xl bg-slate-950/70 border border-slate-800 px-4 py-2.5">
+          <div class="text-[11px] text-slate-400">New Regime Tax</div>
+          <div id="hero-new-tax" class="text-lg font-bold font-mono text-indigo-300"><%= format_inr(@new_regime[:totalTax]) %></div>
+        </div>
+        <div class="rounded-xl bg-slate-950/70 border border-slate-800 px-4 py-2.5">
+          <div class="text-[11px] text-slate-400">Old Regime Tax</div>
+          <div id="hero-old-tax" class="text-lg font-bold font-mono text-amber-300"><%= format_inr(@old_regime[:totalTax]) %></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Grid: Form Inputs + Side-by-Side Comparison -->
+  <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+    <!-- Tax Inputs Form -->
+    <div class="xl:col-span-5 glass-card rounded-2xl p-5 space-y-5">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-white">Income &amp; Deduction Inputs</h2>
+        <span class="text-[11px] text-slate-400">Pre-filled from PPF/80D where available</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[11px] uppercase text-slate-400 mb-1">Financial Year</label>
+          <%= render_custom_dropdown(
+                id: "tax_fy",
+                value: @tax_profile[:fy],
+                options: [["FY 2025-26 (AY 2026-27)", "2025-26"], ["FY 2024-25 (AY 2025-26)", "2024-25"]],
+                onchange: "recalcTaxLive()"
+              ) %>
+        </div>
+        <div>
+          <label class="block text-[11px] uppercase text-slate-400 mb-1">Age Category</label>
+          <%= render_custom_dropdown(
+                id: "tax_age_group",
+                value: @tax_profile[:age_group],
+                options: [["Below 60 Years", "below_60"], ["Senior (60–80 yrs)", "senior_60_80"], ["Super Senior (80+ yrs)", "super_senior_80"]],
+                onchange: "recalcTaxLive()"
+              ) %>
+        </div>
+        <div>
+          <label class="block text-[11px] uppercase text-slate-400 mb-1">Regime Choice</label>
+          <%= render_custom_dropdown(
+                id: "tax_preferred_regime",
+                value: @tax_profile[:preferred_regime],
+                options: [["Auto (Lowest Tax)", "auto"], ["New Regime", "new"], ["Old Regime", "old"]],
+                onchange: "recalcTaxLive()"
+              ) %>
+        </div>
+        <div class="flex items-end pb-2">
+          <label class="inline-flex items-center gap-2 text-xs text-slate-200 cursor-pointer">
+            <input type="checkbox" id="tax_is_salaried" <%= @tax_profile[:is_salaried] ? "checked" : "" %> onchange="recalcTaxLive()" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500">
+            <span>Salaried / Pensioner</span>
+          </label>
+        </div>
+      </div>
+
+      <%
+        income_fields = [
+          ["Gross Annual Salary", "tax_gross_salary", @tax_profile[:gross_salary]],
+          ["Interest Income (FD/RD/Savings)", "tax_interest_income", @tax_profile[:interest_income]],
+          ["Rental Income Received", "tax_rental_income", @tax_profile[:rental_income]],
+          ["Other Taxable Income", "tax_other_income", @tax_profile[:other_income]]
+        ]
+        ded_fields = [
+          ["HRA Exemption (Sec 10)", "tax_hra_exemption", @tax_profile[:hra_exemption]],
+          ["Professional Tax", "tax_professional_tax", @tax_profile[:professional_tax]],
+          ["Home Loan Interest (Sec 24b)", "tax_home_loan_interest_24b", @tax_profile[:home_loan_interest_24b]],
+          ["Section 80C (PPF/ELSS/EPF)", "tax_sec_80c", @tax_profile[:sec_80c]],
+          ["NPS Tier-1 Self (Sec 80CCD 1B)", "tax_sec_80ccd_1b_nps", @tax_profile[:sec_80ccd_1b_nps]],
+          ["Employer NPS (Sec 80CCD 2)", "tax_sec_80ccd_2_employer_nps", @tax_profile[:sec_80ccd_2_employer_nps]],
+          ["Health Insurance (Sec 80D)", "tax_sec_80d_health", @tax_profile[:sec_80d_health]],
+          ["Savings Interest (Sec 80TTA/TTB)", "tax_sec_80tta_savings", @tax_profile[:sec_80tta_savings]],
+          ["Other Deductions (80E/80G)", "tax_other_deductions_80e_80g", @tax_profile[:other_deductions_80e_80g]],
+          ["TDS Already Deducted", "tax_tds_deducted", @tax_profile[:tds_deducted]],
+          ["Advance / Self-Assessment Tax Paid", "tax_advance_tax_paid", @tax_profile[:advance_tax_paid]]
+        ]
+      %>
+
+      <div class="space-y-2.5 pt-2 border-t border-slate-800">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">Annual Income Heads</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <% income_fields.each do |label, id, val| %>
+            <div>
+              <label for="<%= id %>" class="block text-[11px] text-slate-400 mb-1"><%= label %></label>
+              <input type="number" step="any" id="<%= id %>" value="<%= val.to_f.round %>" oninput="recalcTaxLive()" class="w-full px-3 py-2 rounded-xl bg-slate-950/90 border border-slate-700/80 text-xs font-mono text-white focus:border-indigo-500 focus:outline-none">
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="space-y-2.5 pt-2 border-t border-slate-800">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-300">Exemptions, Chapter VI-A &amp; Prepaid Taxes</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <% ded_fields.each do |label, id, val| %>
+            <div>
+              <label for="<%= id %>" class="block text-[11px] text-slate-400 mb-1"><%= label %></label>
+              <input type="number" step="any" id="<%= id %>" value="<%= val.to_f.round %>" oninput="recalcTaxLive()" class="w-full px-3 py-2 rounded-xl bg-slate-950/90 border border-slate-700/80 text-xs font-mono text-white focus:border-indigo-500 focus:outline-none">
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side-by-Side Output Table & Slab Breakdown -->
+    <div class="xl:col-span-7 space-y-6">
+      <div class="glass-card rounded-2xl p-5">
+        <h2 class="text-sm font-bold text-white mb-4">Side-by-Side Liability Comparison</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                <th class="py-2.5 pr-3">Tax Component</th>
+                <th class="py-2.5 px-3 text-right text-indigo-300">New Regime</th>
+                <th class="py-2.5 pl-3 text-right text-amber-300">Old Regime</th>
+              </tr>
+            </thead>
+            <tbody id="tax-comparison-tbody" class="font-mono">
+              <tr class="border-b border-slate-800/60">
+                <td class="py-2.5 pr-3 font-sans text-slate-300">Gross Total Income</td>
+                <td class="py-2.5 px-3 text-right text-white"><%= format_inr(@tax_calc[:grossTotalIncome]) %></td>
+                <td class="py-2.5 pl-3 text-right text-white"><%= format_inr(@tax_calc[:grossTotalIncome]) %></td>
+              </tr>
+              <tr class="border-b border-slate-800/60">
+                <td class="py-2.5 pr-3 font-sans text-slate-300">Standard &amp; Eligible Deductions</td>
+                <td class="py-2.5 px-3 text-right text-emerald-300">-<%= format_inr(@new_regime[:totalDeductions]) %></td>
+                <td class="py-2.5 pl-3 text-right text-emerald-300">-<%= format_inr(@old_regime[:totalDeductions]) %></td>
+              </tr>
+              <tr class="border-b border-slate-800/60 bg-slate-900/40">
+                <td class="py-2.5 pr-3 font-sans font-semibold text-white">Net Taxable Income</td>
+                <td class="py-2.5 px-3 text-right font-bold text-white"><%= format_inr(@new_regime[:taxableIncome]) %></td>
+                <td class="py-2.5 pl-3 text-right font-bold text-white"><%= format_inr(@old_regime[:taxableIncome]) %></td>
+              </tr>
+              <tr class="border-b border-slate-800/60">
+                <td class="py-2.5 pr-3 font-sans text-slate-300">Slab Tax (Before 87A Rebate)</td>
+                <td class="py-2.5 px-3 text-right text-slate-200"><%= format_inr(@new_regime[:slabTax]) %></td>
+                <td class="py-2.5 pl-3 text-right text-slate-200"><%= format_inr(@old_regime[:slabTax]) %></td>
+              </tr>
+              <tr class="border-b border-slate-800/60">
+                <td class="py-2.5 pr-3 font-sans text-slate-300">Sec 87A Rebate &amp; Marginal Relief</td>
+                <td class="py-2.5 px-3 text-right text-emerald-400">-<%= format_inr(@new_regime[:rebate87A].to_f + @new_regime[:marginalRelief].to_f) %></td>
+                <td class="py-2.5 pl-3 text-right text-emerald-400">-<%= format_inr(@old_regime[:rebate87A].to_f + @old_regime[:marginalRelief].to_f) %></td>
+              </tr>
+              <tr class="border-b border-slate-800/60">
+                <td class="py-2.5 pr-3 font-sans text-slate-300">Surcharge + 4% Health &amp; Edu Cess</td>
+                <td class="py-2.5 px-3 text-right text-slate-300"><%= format_inr(@new_regime.dig(:surcharge, :amount).to_f + @new_regime[:cess].to_f) %></td>
+                <td class="py-2.5 pl-3 text-right text-slate-300"><%= format_inr(@old_regime.dig(:surcharge, :amount).to_f + @old_regime[:cess].to_f) %></td>
+              </tr>
+              <tr class="border-b border-slate-700 bg-indigo-950/25">
+                <td class="py-3 pr-3 font-sans font-bold text-white">Total Tax Liability</td>
+                <td class="py-3 px-3 text-right font-bold text-base text-indigo-300"><%= format_inr(@new_regime[:totalTax]) %></td>
+                <td class="py-3 pl-3 text-right font-bold text-base text-amber-300"><%= format_inr(@old_regime[:totalTax]) %></td>
+              </tr>
+              <tr class="border-b border-slate-800/60">
+                <td class="py-2.5 pr-3 font-sans text-slate-300">Effective Tax Rate</td>
+                <td class="py-2.5 px-3 text-right text-slate-200"><%= format_num(@new_regime[:effectiveRate], 2) %>%</td>
+                <td class="py-2.5 pl-3 text-right text-slate-200"><%= format_num(@old_regime[:effectiveRate], 2) %>%</td>
+              </tr>
+              <tr class="border-b border-slate-800/60">
+                <td class="py-2.5 pr-3 font-sans text-slate-300">Monthly Post-Tax Take-Home</td>
+                <td class="py-2.5 px-3 text-right text-emerald-300"><%= format_inr(@new_regime[:monthlyTakeHome]) %></td>
+                <td class="py-2.5 pl-3 text-right text-emerald-300"><%= format_inr(@old_regime[:monthlyTakeHome]) %></td>
+              </tr>
+              <tr>
+                <td class="py-2.5 pr-3 font-sans text-slate-300">ITR Refund (+) / Tax Payable (-)</td>
+                <td class="py-2.5 px-3 text-right font-semibold <%= @new_regime[:refundOrPayable].to_f >= 0 ? 'text-emerald-400' : 'text-rose-400' %>"><%= format_inr(@new_regime[:refundOrPayable]) %></td>
+                <td class="py-2.5 pl-3 text-right font-semibold <%= @old_regime[:refundOrPayable].to_f >= 0 ? 'text-emerald-400' : 'text-rose-400' %>"><%= format_inr(@old_regime[:refundOrPayable]) %></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Slab Breakdown Tables -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="tax-slabs-container">
+        <div class="glass-card rounded-2xl p-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-300 mb-3">New Regime Slab Breakdown</h3>
+          <table class="w-full text-left text-[11px] font-mono">
+            <thead>
+              <tr class="text-slate-400 border-b border-slate-800">
+                <th class="py-1.5">Slab</th>
+                <th class="py-1.5 text-right">Rate</th>
+                <th class="py-1.5 text-right">Tax</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% Array(@new_regime[:slabs]).each do |s| %>
+                <tr class="border-b border-slate-800/50">
+                  <td class="py-1.5 font-sans text-slate-300"><%= s[:label] %></td>
+                  <td class="py-1.5 text-right text-slate-400"><%= s[:rate] %>%</td>
+                  <td class="py-1.5 text-right text-white"><%= format_inr(s[:taxInSlab]) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-amber-300 mb-3">Old Regime Slab Breakdown</h3>
+          <table class="w-full text-left text-[11px] font-mono">
+            <thead>
+              <tr class="text-slate-400 border-b border-slate-800">
+                <th class="py-1.5">Slab</th>
+                <th class="py-1.5 text-right">Rate</th>
+                <th class="py-1.5 text-right">Tax</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% Array(@old_regime[:slabs]).each do |s| %>
+                <tr class="border-b border-slate-800/50">
+                  <td class="py-1.5 font-sans text-slate-300"><%= s[:label] %></td>
+                  <td class="py-1.5 text-right text-slate-400"><%= s[:rate] %>%</td>
+                  <td class="py-1.5 text-right text-white"><%= format_inr(s[:taxInSlab]) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+

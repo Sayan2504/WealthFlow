@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 210" fill="none">
+  <defs>
+    <linearGradient id="fiBg" x1="0" y1="0" x2="360" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1E1B4B"/>
+      <stop offset="55%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#083344"/>
+    </linearGradient>
+    <linearGradient id="fiBar1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <linearGradient id="fiBar2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="210" rx="18" fill="url(#fiBg)"/>
+  <circle cx="305" cy="40" r="65" fill="#22D3EE" opacity="0.1"/>
+  <rect x="20" y="20" width="320" height="170" rx="12" fill="#0F172A" fill-opacity="0.7" stroke="#334155" stroke-width="1"/>
+  <text x="34" y="42" fill="#94A3B8" font-family="Inter, sans-serif" font-size="10" font-weight="700" letter-spacing="1.2">POST-TAX FD &amp; RD YIELD LADDER</text>
+  <rect x="242" y="29" width="84" height="18" rx="9" fill="#065F46" stroke="#34D399" stroke-opacity="0.5"/>
+  <text x="284" y="41" text-anchor="middle" fill="#6EE7B7" font-family="monospace" font-size="9" font-weight="700">RBI COMP</text>
+
+  <!-- Bars -->
+  <text x="36" y="168" fill="#94A3B8" font-family="monospace" font-size="9">0% Slab</text>
+  <rect x="38" y="64" width="36" height="90" rx="6" fill="url(#fiBar2)"/>
+  <text x="56" y="58" text-anchor="middle" fill="#6EE7B7" font-family="monospace" font-size="9" font-weight="700">7.80%</text>
+
+  <text x="98" y="168" fill="#94A3B8" font-family="monospace" font-size="9">10% Slab</text>
+  <rect x="102" y="76" width="36" height="78" rx="6" fill="url(#fiBar1)"/>
+  <text x="120" y="70" text-anchor="middle" fill="#7DD3FC" font-family="monospace" font-size="9" font-weight="700">6.99%</text>
+
+  <text x="162" y="168" fill="#94A3B8" font-family="monospace" font-size="9">20% Slab</text>
+  <rect x="166" y="92" width="36" height="62" rx="6" fill="#6366F1"/>
+  <text x="184" y="86" text-anchor="middle" fill="#A5B4FC" font-family="monospace" font-size="9" font-weight="700">6.18%</text>
+
+  <text x="226" y="168" fill="#94A3B8" font-family="monospace" font-size="9">30% + Cess</text>
+  <rect x="234" y="108" width="36" height="46" rx="6" fill="#818CF8"/>
+  <text x="252" y="102" text-anchor="middle" fill="#C7D2FE" font-family="monospace" font-size="9" font-weight="700">5.37%</text>
+
+  <!-- Right summary card -->
+  <rect x="284" y="62" width="44" height="92" rx="8" fill="#1E293B" stroke="#475569" stroke-width="0.8"/>
+  <text x="306" y="84" text-anchor="middle" fill="#34D399" font-family="monospace" font-size="11" font-weight="800">+₹</text>
+  <text x="306" y="102" text-anchor="middle" fill="#F8FAFC" font-family="Inter, sans-serif" font-size="8" font-weight="700">NET</text>
+  <text x="306" y="114" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="7">KEEP</text>
+  <path d="M294 134 L302 126 L308 131 L318 120" stroke="#34D399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+

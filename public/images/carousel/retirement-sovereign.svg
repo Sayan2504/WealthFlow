@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 210" fill="none">
+  <defs>
+    <linearGradient id="rtBg" x1="0" y1="0" x2="360" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#451A03"/>
+      <stop offset="52%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#064E3B"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="210" rx="18" fill="url(#rtBg)"/>
+  <rect x="20" y="20" width="320" height="170" rx="12" fill="#0F172A" fill-opacity="0.74" stroke="#334155"/>
+  <text x="34" y="42" fill="#FCD34D" font-family="Inter, sans-serif" font-size="10" font-weight="700" letter-spacing="1.1">SOVEREIGN RETIREMENT VAULT (EEE)</text>
+
+  <!-- PPF Gauge -->
+  <rect x="34" y="56" width="140" height="118" rx="10" fill="#1E293B" fill-opacity="0.7" stroke="#F59E0B" stroke-opacity="0.4"/>
+  <text x="48" y="76" fill="#FDE68A" font-family="Inter, sans-serif" font-size="10" font-weight="700">PPF PASSBOOK</text>
+  <text x="48" y="98" fill="#FFFFFF" font-family="monospace" font-size="15" font-weight="800">7.10% p.a.</text>
+  <text x="48" y="114" fill="#94A3B8" font-family="monospace" font-size="8.5">FY Cap: ₹1,50,000</text>
+  <rect x="48" y="128" width="112" height="10" rx="5" fill="#0F172A"/>
+  <rect x="48" y="128" width="94" height="10" rx="5" fill="#F59E0B"/>
+  <text x="48" y="156" fill="#FCD34D" font-family="monospace" font-size="8.5" font-weight="700">Tax-Free Maturity</text>
+
+  <!-- EPF Card -->
+  <rect x="186" y="56" width="140" height="118" rx="10" fill="#1E293B" fill-opacity="0.7" stroke="#10B981" stroke-opacity="0.4"/>
+  <text x="200" y="76" fill="#6EE7B7" font-family="Inter, sans-serif" font-size="10" font-weight="700">EPFO UAN LEDGER</text>
+  <text x="200" y="98" fill="#FFFFFF" font-family="monospace" font-size="15" font-weight="800">8.25% p.a.</text>
+  <text x="200" y="114" fill="#94A3B8" font-family="monospace" font-size="8.5">Employee + Employer</text>
+  <path d="M200 150 L226 140 L254 134 L282 122 L310 108" stroke="#34D399" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="310" cy="108" r="4" fill="#34D399"/>
+  <text x="200" y="164" fill="#6EE7B7" font-family="monospace" font-size="8">Auto Statutory Sync</text>
+</svg>
+

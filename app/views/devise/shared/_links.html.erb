@@ -1,0 +1,14 @@
+<div class="mt-5 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+  <% if controller_name != "sessions" %>
+    <%= link_to "Sign in to existing account", new_session_path(resource_name), class: "text-indigo-400 hover:text-indigo-300 font-medium transition-colors" %>
+  <% end %>
+
+  <% if devise_mapping.registerable? && controller_name != "registrations" %>
+    <%= link_to "Create new account", new_registration_path(resource_name), class: "text-emerald-400 hover:text-emerald-300 font-medium transition-colors" %>
+  <% end %>
+
+  <% if devise_mapping.recoverable? && controller_name != "passwords" && controller_name != "registrations" %>
+    <%= link_to "Forgot password?", new_password_path(resource_name), class: "text-slate-400 hover:text-slate-200 transition-colors" %>
+  <% end %>
+</div>
+

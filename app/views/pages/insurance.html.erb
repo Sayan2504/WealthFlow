@@ -1,0 +1,73 @@
+<% content_for :title, "WealthFlow — Insurance & Protection Coverage" %>
+
+<div class="space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">Insurance &amp; Risk Coverage</h1>
+      <p class="text-xs text-slate-400 mt-1">Health, Term Life, Motor &amp; Home Loan Protection policies with expiry tracking</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" onclick="openAddModal('health_insurance')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors">+ Health</button>
+      <button type="button" onclick="openAddModal('life_insurance')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors">+ Life</button>
+      <button type="button" onclick="openAddModal('vehicle_insurance')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white transition-colors">+ Vehicle</button>
+      <button type="button" onclick="openAddModal('home_loan_insurance')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition-colors">+ Home Loan Cover</button>
+    </div>
+  </div>
+
+  <!-- Summary KPI Cards -->
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="glass-card rounded-2xl p-4">
+      <div class="text-[11px] uppercase tracking-wider text-emerald-300">Health Cover (<%= @ov.dig(:health, :count) %>)</div>
+      <div class="mt-1.5 text-xl font-bold font-mono text-white"><%= format_inr(@ov.dig(:health, :sumInsured)) %></div>
+      <div class="text-[11px] text-slate-400 mt-1">Premium: <span class="font-mono text-slate-200"><%= format_inr(@ov.dig(:health, :premium)) %>/yr</span></div>
+    </div>
+    <div class="glass-card rounded-2xl p-4">
+      <div class="text-[11px] uppercase tracking-wider text-indigo-300">Life Sum Assured (<%= @ov.dig(:life, :count) %>)</div>
+      <div class="mt-1.5 text-xl font-bold font-mono text-white"><%= format_inr(@ov.dig(:life, :sumInsured)) %></div>
+      <div class="text-[11px] text-slate-400 mt-1">Premium: <span class="font-mono text-slate-200"><%= format_inr(@ov.dig(:life, :premium)) %>/yr</span></div>
+    </div>
+    <div class="glass-card rounded-2xl p-4">
+      <div class="text-[11px] uppercase tracking-wider text-cyan-300">Vehicle IDV (<%= @ov.dig(:vehicle, :count) %>)</div>
+      <div class="mt-1.5 text-xl font-bold font-mono text-white"><%= format_inr(@ov.dig(:vehicle, :sumInsured)) %></div>
+      <div class="text-[11px] text-slate-400 mt-1">Premium: <span class="font-mono text-slate-200"><%= format_inr(@ov.dig(:vehicle, :premium)) %>/yr</span></div>
+    </div>
+    <div class="glass-card rounded-2xl p-4">
+      <div class="text-[11px] uppercase tracking-wider text-rose-300">Home Loan Cover (<%= @ov.dig(:homeLoanIns, :count) %>)</div>
+      <div class="mt-1.5 text-xl font-bold font-mono text-white"><%= format_inr(@ov.dig(:homeLoanIns, :sumInsured)) %></div>
+      <div class="text-[11px] text-slate-400 mt-1">Premium: <span class="font-mono text-slate-200"><%= format_inr(@ov.dig(:homeLoanIns, :premium)) %>/yr</span></div>
+    </div>
+  </section>
+
+  <%= render partial: "pages/policy_table", locals: {
+        title: "Health Insurance Policies",
+        subtitle: "Medical & floater family covers (Section 80D eligible)",
+        entity_type: "health_insurance",
+        policies: @health_policies,
+        btn_class: "bg-emerald-600 hover:bg-emerald-500 text-white"
+      } %>
+
+  <%= render partial: "pages/policy_table", locals: {
+        title: "Life & Term Insurance Policies",
+        subtitle: "Pure term & income protection covers",
+        entity_type: "life_insurance",
+        policies: @life_policies,
+        btn_class: "bg-indigo-600 hover:bg-indigo-500 text-white"
+      } %>
+
+  <%= render partial: "pages/policy_table", locals: {
+        title: "Vehicle & Motor Insurance",
+        subtitle: "Comprehensive two/four-wheeler covers",
+        entity_type: "vehicle_insurance",
+        policies: @vehicle_policies,
+        btn_class: "bg-cyan-600 hover:bg-cyan-500 text-white"
+      } %>
+
+  <%= render partial: "pages/policy_table", locals: {
+        title: "Home Loan & Property Protection",
+        subtitle: "Mortgage cover & property structure insurance",
+        entity_type: "home_loan_insurance",
+        policies: @home_loan_policies,
+        btn_class: "bg-rose-600 hover:bg-rose-500 text-white"
+      } %>
+</div>
+

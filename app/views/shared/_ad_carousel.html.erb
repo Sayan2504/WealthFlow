@@ -1,0 +1,156 @@
+<% signed = local_assigns.fetch(:signed_in, user_signed_in?) %>
+<%
+  ov = @ov || {}
+  ret_balance = ov.dig(:ppf, :balance).to_f + ov.dig(:epf, :balance).to_f
+  slides = [
+    {
+      eyebrow: "FIXED INCOME & YIELDS",
+      title: "Know Your Exact Post-Tax FD & RD Return",
+      description: "Live slab deduction at 0%–30% so you see real take-home interest across every deposit.",
+      metric_label: signed ? "Your Post-Tax Interest" : "Effective Yield",
+      metric_value: signed ? format_inr(ov.dig(:postTax, :postTaxGain).to_f) : "7.25% Pre / Net Slab",
+      cta_label: signed ? "Open Fixed Income" : "Track Fixed Deposits",
+      cta_path: signed ? fixed_income_path : new_user_session_path,
+      image: "/images/carousel/fixed-income-yields.svg",
+      accent: "text-emerald-300"
+    },
+    {
+      eyebrow: "EQUITY & MUTUAL FUNDS",
+      title: "Track Live AMFI NAVs & Fund Overlap",
+      description: "Spot duplicate stock exposure and simulate annual SIP step-up growth in one view.",
+      metric_label: signed ? "Mutual Fund Portfolio" : "Live Market Data",
+      metric_value: signed ? format_inr(ov.dig(:mf, :current).to_f) : "AMFI Direct Sync",
+      cta_label: signed ? "Open Mutual Funds" : "Analyze Mutual Funds",
+      cta_path: signed ? mutual_funds_path : new_user_session_path,
+      image: "/images/carousel/mutual-fund-overlap.svg",
+      accent: "text-indigo-300"
+    },
+    {
+      eyebrow: "RETIREMENT & TAX-FREE VAULT",
+      title: "Compound Your PPF & EPF Tax-Free",
+      description: "Monitor your ₹1.5L PPF Section 80C limit and monthly EPF passbook growth effortlessly.",
+      metric_label: signed ? "Total Retirement Vault" : "Sovereign Rates",
+      metric_value: signed ? format_inr(ret_balance) : "7.1% PPF • 8.25% EPF",
+      cta_label: signed ? "Open Retirement Vault" : "Explore Retirement Vault",
+      cta_path: signed ? retirement_path : new_user_session_path,
+      image: "/images/carousel/retirement-sovereign.svg",
+      accent: "text-cyan-300"
+    },
+    {
+      eyebrow: "TAX PLANNER & NET WORTH",
+      title: "Compare Old vs New Tax Regime & Net Worth",
+      description: "Calculate FY 2025-26 take-home savings across 80C, 80D, HRA, and home loan Section 24(b).",
+      metric_label: signed ? "Tracked Net Worth" : "Tax Regimes",
+      metric_value: signed ? format_inr(ov[:netWorth].to_f) : "New 115BAC vs Old",
+      cta_label: signed ? "Open Tax Planner" : "Optimize Your Tax",
+      cta_path: signed ? tax_calculator_path : new_user_session_path,
+      image: "/images/carousel/tax-regime-cockpit.svg",
+      accent: "text-amber-300"
+    }
+  ]
+%>
+
+<section
+  class="wf-carousel relative overflow-hidden rounded-2xl border border-slate-800/90 bg-slate-900/90 shadow-xl"
+  data-controller="carousel"
+  data-carousel-interval-value="5500"
+  data-action="mouseenter->carousel#pause mouseleave->carousel#resume"
+  aria-label="WealthFlow Highlights"
+>
+  <div class="relative bg-gradient-to-r from-indigo-950/60 via-slate-900/90 to-slate-950/90 p-5 sm:p-6">
+    <!-- Minimal Controls Header -->
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">WealthFlow Highlights</span>
+        <span data-carousel-target="counter" class="text-[11px] font-mono text-slate-400">1 / <%= slides.length %></span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          data-action="click->carousel#prev"
+          aria-label="Previous slide"
+          class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 text-slate-200 transition-colors cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-action="click->carousel#next"
+          aria-label="Next slide"
+          class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 text-slate-200 transition-colors cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Clean 4-Slide Showcase -->
+    <div class="relative">
+      <% slides.each_with_index do |slide, idx| %>
+        <div
+          data-carousel-target="slide"
+          class="<%= idx == 0 ? '' : 'hidden' %> grid grid-cols-1 lg:grid-cols-12 gap-5 items-center"
+        >
+          <div class="lg:col-span-7 space-y-3">
+            <span class="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-[10px] font-bold uppercase tracking-wider <%= slide[:accent] %>">
+              <%= slide[:eyebrow] %>
+            </span>
+
+            <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+              <%= slide[:title] %>
+            </h2>
+
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
+              <%= slide[:description] %>
+            </p>
+
+            <div class="flex flex-wrap items-center gap-4 pt-1">
+              <div class="px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-800">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400"><%= slide[:metric_label] %></div>
+                <div class="text-sm font-mono font-bold text-white mt-0.5"><%= slide[:metric_value] %></div>
+              </div>
+
+              <%= link_to slide[:cta_path], class: "wf-cta-solid inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition-colors" do %>
+                <span><%= slide[:cta_label] %></span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5">
+            <div class="rounded-xl overflow-hidden border border-slate-800/80 bg-slate-950/70 p-2">
+              <img
+                src="<%= slide[:image] %>"
+                alt="<%= slide[:title] %>"
+                class="w-full h-40 sm:h-44 object-contain"
+                loading="lazy"
+              >
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Bottom Slide Dots -->
+    <div class="flex items-center justify-center gap-2 mt-4 pt-2 border-t border-slate-800/60">
+      <% slides.each_with_index do |slide, idx| %>
+        <button
+          type="button"
+          data-carousel-target="dot"
+          data-index="<%= idx %>"
+          data-action="click->carousel#goTo"
+          aria-label="Go to slide <%= idx + 1 %>: <%= slide[:title] %>"
+          class="<%= idx == 0 ? 'h-1.5 w-6 rounded-full bg-indigo-400' : 'h-1.5 w-2 rounded-full bg-slate-600' %> transition-all cursor-pointer"
+        ></button>
+      <% end %>
+    </div>
+  </div>
+</section>

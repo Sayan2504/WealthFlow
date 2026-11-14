@@ -1,0 +1,9 @@
+<% if resource.errors.any? %>
+  <% error_payload = resource.errors.full_messages.map { |message| { message: message, variant: "error" } } %>
+  <div
+    class="hidden"
+    aria-hidden="true"
+    data-controller="toast"
+    data-toast-messages-value="<%= json_escape(error_payload.to_json) %>"
+  ></div>
+<% end %>

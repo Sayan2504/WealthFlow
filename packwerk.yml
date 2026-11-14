@@ -1,0 +1,21 @@
+# Packwerk configuration for WealthFlow Modular Monolith Architecture
+include:
+  - "**/*.{rb,rake,erb}"
+
+exclude:
+  - "{bin,node_modules,script,tmp,vendor,legacy,public,storage,spec,db}/**/*"
+  - "lib/tasks/**/*"
+
+package_paths:
+  - "."
+  - "packages/core"
+  - "packages/banking"
+  - "packages/tax_planning"
+  - "packages/dashboard"
+  - "packages/market_data"
+  - "packages/reporting"
+  - "packages/ai_search"
+  - "packages/investments/*"
+  - "packages/insurance/*"
+  - "packages/liabilities/*"
+

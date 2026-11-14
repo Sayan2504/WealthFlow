@@ -1,8 +1,6 @@
-# packages/tax_planning/package.yml
 enforce_dependencies: true
-enforce_privacy: true
-public_path: app/public
-
 dependencies:
-  - "packages/core"
-
+  - packages/core
+metadata:
+  owner: TaxDesk
+  description: Indian Income Tax FY 2024-25 & 2025-26 Old vs New regime calculation & slab breakdown.

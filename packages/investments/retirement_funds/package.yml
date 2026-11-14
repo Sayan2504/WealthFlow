@@ -1,8 +1,6 @@
-# packages/investments/retirement_funds/package.yml
 enforce_dependencies: true
-enforce_privacy: true
 dependencies:
-  - "packages/core"
+  - packages/core
 metadata:
-  description: "PPF and EPF retirement schemes, monthly minimum balance interest rule, and employer/employee ledgers"
-
+  owner: RetirementDesk
+  description: PPF financial-year limit tracking and EPF passbook summaries.

@@ -1,0 +1,7 @@
+enforce_dependencies: true
+dependencies:
+  - packages/core
+metadata:
+  owner: ReportingDesk
+  description: Consolidated multi-sheet Excel XML and CSV portfolio statement exporter.
+

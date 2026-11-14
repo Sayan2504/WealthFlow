@@ -1,0 +1,54 @@
+default_theme: midnight
+
+themes:
+  midnight:
+    label: Midnight Slate
+    short_label: Dark
+    mode: dark
+    description: Deep obsidian slate with electric indigo accents
+    tokens:
+      bg_primary: "#020617"
+      bg_secondary: "#0f172a"
+      bg_elevated: "rgba(15, 23, 42, 0.94)"
+      card_bg: "rgba(15, 23, 42, 0.72)"
+      card_border: "rgba(51, 65, 85, 0.60)"
+      text_primary: "#f8fafc"
+      text_secondary: "#cbd5e1"
+      text_muted: "#94a3b8"
+      accent: "#6366f1"
+      accent_soft: "rgba(99, 102, 241, 0.16)"
+
+  light:
+    label: Daylight Classic
+    short_label: Light
+    mode: light
+    description: Crisp daylight workspace with high-contrast slate typography
+    tokens:
+      bg_primary: "#f1f5f9"
+      bg_secondary: "#ffffff"
+      bg_elevated: "#ffffff"
+      card_bg: "#ffffff"
+      card_border: "#cbd5e1"
+      text_primary: "#0f172a"
+      text_secondary: "#334155"
+      text_muted: "#475569"
+      accent: "#4f46e5"
+      accent_soft: "rgba(79, 70, 229, 0.10)"
+
+  aurora:
+    label: Aurora Sovereign
+    short_label: Aurora
+    mode: dark
+    description: Deep spruce-emerald canvas with jade and cyan accents
+    tokens:
+      bg_primary: "#031317"
+      bg_secondary: "#071f24"
+      bg_elevated: "rgba(7, 31, 36, 0.94)"
+      card_bg: "rgba(8, 36, 42, 0.76)"
+      card_border: "rgba(45, 212, 191, 0.24)"
+      text_primary: "#ecfeff"
+      text_secondary: "#bae6fd"
+      text_muted: "#99f6e4"
+      accent: "#14b8a6"
+      accent_soft: "rgba(20, 184, 166, 0.18)"
+

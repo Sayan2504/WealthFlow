@@ -1,8 +1,6 @@
-# packages/banking/package.yml
 enforce_dependencies: true
-enforce_privacy: true
-public_path: app/public
-
 dependencies:
-  - "packages/core"
-
+  - packages/core
+metadata:
+  owner: BankingDesk
+  description: Liquid bank accounts interest yield and credit card utilization scoring.

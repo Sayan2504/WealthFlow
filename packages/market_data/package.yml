@@ -1,0 +1,8 @@
+enforce_dependencies: true
+dependencies:
+  - packages/investments/mutual_funds
+  - packages/investments/retirement_funds
+metadata:
+  owner: MarketDataDesk
+  description: Live AMFI NAV feeds, default scheme catalog, and statutory retirement rate registry.
+

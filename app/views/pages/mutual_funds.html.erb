@@ -1,0 +1,256 @@
+<% content_for :title, "WealthFlow — Mutual Funds & Overlap Intelligence" %>
+
+<div class="space-y-6">
+  <!-- Header & Toolbar -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">Mutual Funds Portfolio</h1>
+      <p class="text-xs text-slate-400 mt-1">AMFI live NAV sync, SIP Step-Up projections &amp; underlying stock overlap analytics</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2" data-controller="portfolio-sync">
+      <button type="button" onclick="openOverlapIntelligenceDrawer('pairwise')" class="px-3.5 py-2 rounded-xl text-xs font-medium bg-violet-500/15 hover:bg-violet-500/25 text-violet-200 border border-violet-500/35 transition-colors">
+        Overlap Intelligence Drawer
+      </button>
+      <button type="button" onclick="openSipStepUpDrawer()" class="px-3.5 py-2 rounded-xl text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-200 border border-cyan-500/35 transition-colors">
+        SIP Step-Up Simulator
+      </button>
+      <button type="button" id="sync-navs-btn" data-action="click->portfolio-sync#syncNavs" onclick="if(!window.Stimulus) syncAllMutualFundNavs()" class="px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors">
+        Sync Live NAVs
+      </button>
+      <button type="button" data-action="click->portfolio-sync#syncStocks" onclick="if(!window.Stimulus) syncAllMutualFundStocks()" class="px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors">
+        Sync All Holdings
+      </button>
+      <button type="button" onclick="openAddModal('mutual_fund')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25 transition-colors">
+        + Add Mutual Fund
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="glass-card rounded-2xl p-4">
+      <div class="text-[11px] uppercase tracking-wider text-slate-400">Current Portfolio Value</div>
+      <div class="mt-1.5 text-2xl font-bold font-mono text-white"><%= format_inr(@ov.dig(:mf, :current)) %></div>
+      <div class="text-[11px] text-slate-400 mt-1"><%= @funds.size %> active schemes</div>
+    </div>
+    <div class="glass-card rounded-2xl p-4">
+      <div class="text-[11px] uppercase tracking-wider text-slate-400">Total Invested Capital</div>
+      <div class="mt-1.5 text-2xl font-bold font-mono text-slate-100"><%= format_inr(@ov.dig(:mf, :invested)) %></div>
+      <div class="text-[11px] text-slate-400 mt-1">Cost basis across units</div>
+    </div>
+    <div class="glass-card rounded-2xl p-4">
+      <div class="text-[11px] uppercase tracking-wider text-slate-400">Net Gain &amp; Absolute Return</div>
+      <div class="mt-1.5 text-2xl font-bold font-mono <%= @ov.dig(:mf, :gain).to_f >= 0 ? 'text-emerald-400' : 'text-rose-400' %>">
+        <%= format_inr(@ov.dig(:mf, :gain)) %>
+      </div>
+      <div class="text-[11px] font-mono text-emerald-300 mt-1"><%= format_num(@ov.dig(:mf, :gainPct), 2) %>% absolute return</div>
+    </div>
+    <div class="glass-card rounded-2xl p-4">
+      <div class="text-[11px] uppercase tracking-wider text-slate-400">Monthly SIP Outflow</div>
+      <div class="mt-1.5 text-2xl font-bold font-mono text-indigo-300"><%= format_inr(@ov.dig(:mf, :sip)) %></div>
+      <div class="text-[11px] text-slate-400 mt-1">Automated monthly allocation</div>
+    </div>
+  </section>
+
+  <!-- Mutual Funds Schemes Table -->
+  <section class="glass-card rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-bold text-white">Active Mutual Fund Schemes</h2>
+      <span class="text-xs text-slate-400">Click the Stocks badge on any scheme to view or edit underlying holdings</span>
+    </div>
+    <div class="overflow-x-auto card-scroll">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <th class="py-3 pr-4">Scheme / AMC</th>
+            <th class="py-3 px-3">Category</th>
+            <th class="py-3 px-3 text-right">NAV / Units</th>
+            <th class="py-3 px-3 text-right">Monthly SIP</th>
+            <th class="py-3 px-3 text-right">Invested</th>
+            <th class="py-3 px-3 text-right">Current Value</th>
+            <th class="py-3 px-3 text-right">Gain (%)</th>
+            <th class="py-3 px-3 text-center">Holdings</th>
+            <th class="py-3 pl-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @funds.each do |mf| %>
+            <%
+              cur = mf[:current_value].to_f
+              inv = mf[:invested_amount].to_f
+              gain = cur - inv
+              pct = inv.positive? ? (gain / inv) * 100.0 : 0.0
+              holdings_cnt = Calculations::MutualFundsOverlapService.holdings_for_fund(mf).size
+            %>
+            <tr class="border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors">
+              <td class="py-3 pr-4">
+                <div class="font-semibold text-white"><%= mf[:scheme_name] %></div>
+                <div class="text-[11px] text-slate-400">
+                  <%= mf[:amc].presence || "AMC" %> • Code: <span class="font-mono text-slate-300"><%= mf[:scheme_code].presence || "—" %></span>
+                </div>
+              </td>
+              <td class="py-3 px-3">
+                <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-800 text-slate-300 border border-slate-700"><%= mf[:category] %></span>
+              </td>
+              <td class="py-3 px-3 text-right font-mono">
+                <div class="text-slate-100">₹<%= format_num(mf[:latest_nav], 2) %></div>
+                <div class="text-[10px] text-slate-400"><%= format_num(mf[:units], 3) %> u</div>
+              </td>
+              <td class="py-3 px-3 text-right font-mono text-indigo-300">
+                <%= format_inr(mf[:sip_amount]) %>
+                <% if mf[:step_up_pct].to_f > 0 %>
+                  <div class="text-[10px] text-cyan-400">+<%= format_num(mf[:step_up_pct], 1) %>%/yr</div>
+                <% end %>
+              </td>
+              <td class="py-3 px-3 text-right font-mono text-slate-300"><%= format_inr(inv) %></td>
+              <td class="py-3 px-3 text-right font-mono font-bold text-white"><%= format_inr(cur) %></td>
+              <td class="py-3 px-3 text-right font-mono">
+                <div class="<%= gain >= 0 ? 'text-emerald-400' : 'text-rose-400' %> font-semibold"><%= format_inr(gain) %></div>
+                <div class="text-[10px] <%= gain >= 0 ? 'text-emerald-400/80' : 'text-rose-400/80' %>"><%= format_num(pct, 2) %>%</div>
+              </td>
+              <td class="py-3 px-3 text-center">
+                <button type="button" onclick="openFundHoldingsDrawer('<%= mf[:id] %>')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 transition-colors">
+                  <%= holdings_cnt %> stocks
+                </button>
+              </td>
+              <td class="py-3 pl-3 text-right">
+                <%= render_row_action_buttons(
+                      edit_onclick: "openEditModal('mutual_fund', #{mf[:id]})",
+                      delete_onclick: "confirmDeleteItem('mutual_fund', #{mf[:id]}, '#{j(mf[:scheme_name])}')"
+                    ) %>
+              </td>
+            </tr>
+          <% end %>
+          <% if @funds.empty? %>
+            <tr><td colspan="9" class="py-8 text-center text-slate-500">No mutual fund schemes added yet. Click "+ Add Mutual Fund" to search AMFI schemes.</td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Pairwise Overlap Comparison + Matrix -->
+  <% if @funds.size >= 2 %>
+    <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+      <div class="xl:col-span-7 glass-card rounded-2xl p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-bold text-white">Pairwise Scheme Overlap Inspector</h2>
+            <p class="text-xs text-slate-400">Compare exact overlapping equities &amp; minimum weight overlap</p>
+          </div>
+          <button type="button" onclick="compareSelectedFundsOverlap()" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors">
+            Compute Overlap
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Scheme A</label>
+            <%= render_custom_dropdown(
+                  id: "overlap-fund-a",
+                  value: @funds[0][:id],
+                  options: @funds.map { |f| [f[:scheme_name], f[:id]] },
+                  onchange: "compareSelectedFundsOverlap()"
+                ) %>
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase tracking-wider text-slate-400 mb-1">Scheme B</label>
+            <%= render_custom_dropdown(
+                  id: "overlap-fund-b",
+                  value: @funds[1][:id],
+                  options: @funds.map { |f| [f[:scheme_name], f[:id]] },
+                  onchange: "compareSelectedFundsOverlap()"
+                ) %>
+          </div>
+        </div>
+
+        <div id="pairwise-overlap-container">
+          <%= render_pairwise_overlap_html(@default_pairwise) if @default_pairwise %>
+        </div>
+      </div>
+
+      <!-- Overlap Matrix Heatmap -->
+      <div class="xl:col-span-5 glass-card rounded-2xl p-5 space-y-4">
+        <div>
+          <h2 class="text-sm font-bold text-white">N×N Portfolio Overlap Matrix</h2>
+          <p class="text-xs text-slate-400">Full portfolio cross-duplication heatmap</p>
+        </div>
+        <div class="overflow-x-auto card-scroll">
+          <table class="w-full text-center border-collapse text-[11px] font-mono">
+            <thead>
+              <tr>
+                <th class="p-2 text-left text-slate-400">Scheme</th>
+                <% @matrix[:funds].each do |mf| %>
+                  <th class="p-2 text-slate-300 truncate max-w-[90px]" title="<%= mf[:scheme_name] %>"><%= mf[:scheme_name].split.first(2).join(" ") %></th>
+                <% end %>
+              </tr>
+            </thead>
+            <tbody>
+              <% @matrix[:funds].each_with_index do |fa, i| %>
+                <tr class="border-t border-slate-800/70">
+                  <td class="p-2 text-left font-sans font-medium text-slate-200 max-w-[130px] truncate" title="<%= fa[:scheme_name] %>"><%= fa[:scheme_name].split.first(2).join(" ") %></td>
+                  <% @matrix[:matrix][i].each_with_index do |val, j| %>
+                    <%
+                      cell_cls = if i == j
+                                   "bg-slate-800/80 text-slate-400"
+                                 elsif val >= 35
+                                   "bg-rose-500/25 text-rose-200 font-bold"
+                                 elsif val >= 15
+                                   "bg-amber-500/20 text-amber-200"
+                                 else
+                                   "bg-emerald-500/15 text-emerald-300"
+                                 end
+                    %>
+                    <td class="p-2 rounded border border-slate-900/80 <%= cell_cls %>"><%= format_num(val, 1) %>%</td>
+                  <% end %>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
+  <!-- Consolidated Stock Exposure -->
+  <% if @consolidated.any? %>
+    <section class="glass-card rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-sm font-bold text-white">Consolidated Effective Portfolio Exposure (Top 20 Stocks)</h2>
+          <p class="text-xs text-slate-400">Weighted by each scheme's share of total Mutual Fund value</p>
+        </div>
+      </div>
+      <div class="overflow-x-auto card-scroll">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+              <th class="py-2.5 pr-3">Company / Ticker</th>
+              <th class="py-2.5 px-3">Sector</th>
+              <th class="py-2.5 px-3 text-right">Portfolio Weight</th>
+              <th class="py-2.5 px-3 text-right">Effective Value</th>
+              <th class="py-2.5 pl-3">Held In Schemes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @consolidated.first(20).each do |row| %>
+              <tr class="border-b border-slate-800/50 hover:bg-slate-800/30">
+                <td class="py-2.5 pr-3">
+                  <span class="font-semibold text-white"><%= row[:stock] %></span>
+                  <span class="ml-1.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-indigo-300"><%= row[:ticker] %></span>
+                </td>
+                <td class="py-2.5 px-3 text-slate-400"><%= row[:sector] %></td>
+                <td class="py-2.5 px-3 text-right font-mono font-semibold text-emerald-300"><%= format_num(row[:effectivePortfolioWeight], 2) %>%</td>
+                <td class="py-2.5 px-3 text-right font-mono text-slate-200"><%= format_inr(row[:portfolioValue]) %></td>
+                <td class="py-2.5 pl-3 text-[11px] text-slate-300">
+                  <%= row[:presentInFunds].map { |pf| "#{pf[:fundName].split.first(2).join(' ')} (#{pf[:weightInFund]}%)" }.join(", ") %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  <% end %>
+</div>
+

@@ -1,0 +1,279 @@
+<% content_for :title, "WealthFlow — Fixed Deposits, RDs & Post-Tax Interest" %>
+
+<script>
+  window.FI_GROSS_INTEREST = <%= @ov.dig(:postTax, :totalGrossGain).to_f %>;
+  window.FI_AVG_RATE = <%= @ov.dig(:fd, :avgRate).to_f %>;
+</script>
+
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">Fixed Income Portfolio</h1>
+      <p class="text-xs text-slate-400 mt-1">Fixed Deposits, Recurring Deposits, Flexi RDs &amp; After-Tax Net Interest Reality</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" onclick="openAddModal('fd')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-colors">
+        + Add FD
+      </button>
+      <button type="button" onclick="openAddModal('rd')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors">
+        + Add RD
+      </button>
+      <button type="button" onclick="openAddModal('flexi_rd')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors">
+        + Add Flexi RD
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary KPI Row -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="glass-card rounded-2xl p-5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Fixed Deposits (<%= @ov.dig(:fd, :count) %>)</span>
+        <span class="font-mono text-xs text-slate-400">Avg <%= format_num(@ov.dig(:fd, :avgRate), 2) %>%</span>
+      </div>
+      <div class="mt-2 text-2xl font-bold font-mono text-white"><%= format_inr(@ov.dig(:fd, :maturity)) %></div>
+      <div class="mt-1 text-xs text-slate-400">
+        Principal: <span class="font-mono text-slate-200"><%= format_inr(@ov.dig(:fd, :principal)) %></span> • Gain: <span class="font-mono text-emerald-400">+<%= format_inr(@ov.dig(:fd, :gain)) %></span>
+      </div>
+    </div>
+
+    <div class="glass-card rounded-2xl p-5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-300">Recurring Deposits (<%= @ov.dig(:rd, :count) %>)</span>
+        <span class="font-mono text-xs text-slate-400"><%= format_inr(@ov.dig(:rd, :monthly)) %>/mo</span>
+      </div>
+      <div class="mt-2 text-2xl font-bold font-mono text-white"><%= format_inr(@ov.dig(:rd, :maturity)) %></div>
+      <div class="mt-1 text-xs text-slate-400">
+        Invested: <span class="font-mono text-slate-200"><%= format_inr(@ov.dig(:rd, :invested)) %></span> • Gain: <span class="font-mono text-emerald-400">+<%= format_inr(@ov.dig(:rd, :gain)) %></span>
+      </div>
+    </div>
+
+    <div class="glass-card rounded-2xl p-5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-violet-300">Flexi RDs (<%= @ov.dig(:flexiRd, :count) %>)</span>
+        <span class="font-mono text-xs text-slate-400">Base <%= format_inr(@ov.dig(:flexiRd, :baseMonthly)) %>/mo</span>
+      </div>
+      <div class="mt-2 text-2xl font-bold font-mono text-white"><%= format_inr(@ov.dig(:flexiRd, :maturity)) %></div>
+      <div class="mt-1 text-xs text-slate-400">
+        Deposited: <span class="font-mono text-slate-200"><%= format_inr(@ov.dig(:flexiRd, :invested)) %></span> • Gain: <span class="font-mono text-emerald-400">+<%= format_inr(@ov.dig(:flexiRd, :gain)) %></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Post-Tax Interest Interactive Banner -->
+  <section class="glass-card rounded-2xl p-6 border-emerald-500/30 bg-gradient-to-br from-emerald-950/35 via-slate-900/90 to-slate-900/80"
+           data-controller="fi-slab"
+           data-fi-slab-gross-value="<%= @ov.dig(:postTax, :totalGrossGain).to_f %>"
+           data-fi-slab-avg-rate-value="<%= @ov.dig(:fd, :avgRate).to_f %>">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+      <div>
+        <div class="flex items-center gap-2">
+          <h2 class="text-base font-bold text-white">After-Tax Interest Take-Home Reality</h2>
+          <span class="px-2 py-0.5 text-[10px] font-mono font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Includes 4% Health &amp; Education Cess</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Select your Income Tax slab to see exact tax deduction and post-tax net interest across all FDs, RDs &amp; Flexi RDs</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Tax Slab Selector">
+        <% [0, 5, 10, 15, 20, 30].each do |pct| %>
+          <% rate = pct / 100.0 %>
+          <% active = (@slab_rate - rate).abs < 0.001 %>
+          <button type="button"
+                  data-slab="<%= rate %>"
+                  onclick="setFiTaxSlab(<%= rate %>)"
+                  class="fi-slab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-all <%= active ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/25' : 'bg-slate-900/80 text-slate-300 border-slate-700 hover:border-indigo-500/50' %>">
+            <%= pct %>%
+          </button>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-5">
+      <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-4">
+        <div class="text-[11px] uppercase tracking-wider text-slate-400">Gross Interest Earned</div>
+        <div class="mt-1 text-xl font-bold font-mono text-white"><%= format_inr(@ov.dig(:postTax, :totalGrossGain)) %></div>
+        <div class="text-[11px] text-slate-400 mt-1">Pre-tax total interest</div>
+      </div>
+
+      <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-4">
+        <div class="text-[11px] uppercase tracking-wider text-slate-400">Estimated Income Tax</div>
+        <div id="fi-tax-deducted" class="mt-1 text-xl font-bold font-mono text-rose-400"><%= format_inr(@ov.dig(:postTax, :estimatedTax)) %></div>
+        <div id="fi-effective-tax-label" class="text-[11px] text-slate-400 mt-1">Effective Rate: <%= format_num(@ov.dig(:postTax, :effectiveTaxRate).to_f * 100, 2) %>%</div>
+      </div>
+
+      <div class="rounded-xl bg-emerald-950/40 border border-emerald-500/35 p-4">
+        <div class="text-[11px] uppercase tracking-wider text-emerald-300">Post-Tax Net Interest</div>
+        <div id="fi-post-tax-interest" class="mt-1 text-xl font-bold font-mono text-emerald-300"><%= format_inr(@ov.dig(:postTax, :postTaxGain)) %></div>
+        <div class="text-[11px] text-emerald-200/70 mt-1">In-hand net interest gain</div>
+      </div>
+
+      <div class="rounded-xl bg-slate-950/60 border border-slate-800 p-4">
+        <div class="text-[11px] uppercase tracking-wider text-slate-400">Effective Post-Tax FD Yield</div>
+        <div id="fi-post-tax-yield" class="mt-1 text-xl font-bold font-mono text-cyan-300"><%= format_num(@ov.dig(:postTax, :postTaxYield), 2) %>% p.a.</div>
+        <div class="text-[11px] text-slate-400 mt-1">Pre-tax avg: <%= format_num(@ov.dig(:fd, :avgRate), 2) %>% p.a.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fixed Deposits Table -->
+  <section class="glass-card rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-bold text-white">Fixed Deposits (FD)</h2>
+      <span class="text-xs text-slate-400">Quarterly compounding • Auto/Custom Maturity</span>
+    </div>
+    <div class="overflow-x-auto card-scroll">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <th class="py-3 pr-3">Bank &amp; FD No</th>
+            <th class="py-3 px-3 text-right">Principal</th>
+            <th class="py-3 px-3 text-right">Rate</th>
+            <th class="py-3 px-3">Start → Maturity</th>
+            <th class="py-3 px-3">Timeline</th>
+            <th class="py-3 px-3 text-right">Gross Interest</th>
+            <th class="py-3 px-3 text-right">Post-Tax Interest</th>
+            <th class="py-3 px-3 text-right">Maturity Amt</th>
+            <th class="py-3 pl-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @fds.each do |row| %>
+            <% fd = row[:raw]; c = row[:calc] %>
+            <tr class="border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors">
+              <td class="py-3 pr-3">
+                <div class="font-semibold text-white"><%= fd[:bank] %></div>
+                <div class="text-[11px] font-mono text-slate-400"><%= fd[:fd_no] %></div>
+              </td>
+              <td class="py-3 px-3 text-right font-mono text-slate-200"><%= format_inr(c[:principal]) %></td>
+              <td class="py-3 px-3 text-right font-mono text-emerald-300"><%= format_num(c[:rate], 2) %>%</td>
+              <td class="py-3 px-3 font-mono">
+                <div class="text-slate-300"><%= format_date_dmy(fd[:start_date]) %> → <%= format_date_dmy(fd[:maturity_date]) %></div>
+                <div class="text-[10px] text-slate-500"><%= c[:duration_text] %></div>
+              </td>
+              <td class="py-3 px-3">
+                <span class="px-2 py-0.5 rounded-full text-[10px] border <%= c[:days_left_badge_class] %>"><%= c[:days_left_label] %></span>
+              </td>
+              <td class="py-3 px-3 text-right font-mono text-emerald-400">+<%= format_inr(c[:gain]) %></td>
+              <td class="py-3 px-3 text-right font-mono font-semibold text-cyan-300 fi-post-tax-cell" data-row-key="fd-<%= fd[:id] %>" data-gross-gain="<%= c[:gain] %>" data-rate="<%= c[:rate] %>">
+                <%= format_inr(c[:post_tax_gain]) %>
+                <div class="text-[10px] text-slate-400">(<%= format_num(c[:post_tax_yield], 2) %>% net)</div>
+              </td>
+              <td class="py-3 px-3 text-right font-mono font-bold text-white"><%= format_inr(c[:maturity]) %></td>
+              <td class="py-3 pl-3 text-right">
+                <%= render_row_action_buttons(
+                      edit_onclick: "openEditModal('fd', #{fd[:id]})",
+                      delete_onclick: "confirmDeleteItem('fd', #{fd[:id]}, '#{j("#{fd[:bank]} FD #{fd[:fd_no]}")}')"
+                    ) %>
+              </td>
+            </tr>
+          <% end %>
+          <% if @fds.empty? %>
+            <tr><td colspan="9" class="py-8 text-center text-slate-500">No fixed deposits added yet.</td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Recurring Deposits & Flexi RDs -->
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div class="glass-card rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-bold text-white">Recurring Deposits (RD)</h2>
+        <button type="button" onclick="openAddModal('rd')" class="text-xs text-indigo-300 hover:text-indigo-200">+ New RD</button>
+      </div>
+      <div class="overflow-x-auto card-scroll">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="text-[11px] uppercase text-slate-400 border-b border-slate-800">
+              <th class="py-2.5 pr-3">Bank / Goal</th>
+              <th class="py-2.5 px-3 text-right">Monthly / Inv.</th>
+              <th class="py-2.5 px-3 text-right">Post-Tax Int.</th>
+              <th class="py-2.5 px-3 text-right">Maturity</th>
+              <th class="py-2.5 pl-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @rds.each do |row| %>
+              <% rd = row[:raw]; c = row[:calc] %>
+              <tr class="border-b border-slate-800/60 hover:bg-slate-800/30">
+                <td class="py-3 pr-3">
+                  <div class="font-semibold text-white"><%= rd[:bank] %> — <%= rd[:purpose].presence || "RD" %></div>
+                  <div class="text-[10px] font-mono text-slate-400"><%= rd[:rd_no] %> • <%= format_date_dmy(rd[:start_date]) %> → <%= format_date_dmy(rd[:end_date]) %></div>
+                </td>
+                <td class="py-3 px-3 text-right font-mono">
+                  <div class="text-slate-100"><%= format_inr(c[:monthly_amount]) %>/mo</div>
+                  <div class="text-[10px] text-slate-400">Inv: <%= format_inr(c[:total_invested]) %> (<%= format_num(c[:rate], 2) %>%)</div>
+                </td>
+                <td class="py-3 px-3 text-right font-mono text-cyan-300 fi-post-tax-cell" data-row-key="rd-<%= rd[:id] %>" data-gross-gain="<%= c[:gain] %>" data-rate="<%= c[:rate] %>">
+                  <%= format_inr(c[:post_tax_gain]) %>
+                  <div class="text-[10px] text-emerald-400/80">Gross: <%= format_inr(c[:gain]) %></div>
+                </td>
+                <td class="py-3 px-3 text-right font-mono font-bold text-white"><%= format_inr(c[:maturity]) %></td>
+                <td class="py-3 pl-3 text-right">
+                  <%= render_row_action_buttons(
+                        edit_onclick: "openEditModal('rd', #{rd[:id]})",
+                        delete_onclick: "confirmDeleteItem('rd', #{rd[:id]}, '#{j("#{rd[:bank]} RD")}')"
+                      ) %>
+                </td>
+              </tr>
+            <% end %>
+            <% if @rds.empty? %>
+              <tr><td colspan="5" class="py-6 text-center text-slate-500">No recurring deposits yet.</td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="glass-card rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-bold text-white">Flexi Recurring Deposits</h2>
+        <button type="button" onclick="openAddModal('flexi_rd')" class="text-xs text-violet-300 hover:text-violet-200">+ New Flexi RD</button>
+      </div>
+      <div class="overflow-x-auto card-scroll">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="text-[11px] uppercase text-slate-400 border-b border-slate-800">
+              <th class="py-2.5 pr-3">Bank / Goal</th>
+              <th class="py-2.5 px-3 text-right">Base / Deposited</th>
+              <th class="py-2.5 px-3 text-right">Post-Tax Int.</th>
+              <th class="py-2.5 px-3 text-right">Maturity</th>
+              <th class="py-2.5 pl-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @flexi_rds.each do |row| %>
+              <% frd = row[:raw]; c = row[:calc] %>
+              <tr class="border-b border-slate-800/60 hover:bg-slate-800/30">
+                <td class="py-3 pr-3">
+                  <div class="font-semibold text-white"><%= frd[:bank] %> — <%= frd[:purpose].presence || "Flexi RD" %></div>
+                  <div class="text-[10px] font-mono text-slate-400"><%= frd[:rd_no] %> • <%= format_date_dmy(frd[:start_date]) %> → <%= format_date_dmy(frd[:end_date]) %></div>
+                </td>
+                <td class="py-3 px-3 text-right font-mono">
+                  <div class="text-slate-100"><%= format_inr(c[:base_monthly]) %>/mo</div>
+                  <div class="text-[10px] text-slate-400">Dep: <%= format_inr(c[:total_deposited]) %> (<%= format_num(c[:rate], 2) %>%)</div>
+                </td>
+                <td class="py-3 px-3 text-right font-mono text-cyan-300 fi-post-tax-cell" data-row-key="frd-<%= frd[:id] %>" data-gross-gain="<%= c[:gain] %>" data-rate="<%= c[:rate] %>">
+                  <%= format_inr(c[:post_tax_gain]) %>
+                  <div class="text-[10px] text-emerald-400/80">Gross: <%= format_inr(c[:gain]) %></div>
+                </td>
+                <td class="py-3 px-3 text-right font-mono font-bold text-white"><%= format_inr(c[:maturity]) %></td>
+                <td class="py-3 pl-3 text-right">
+                  <%= render_row_action_buttons(
+                        edit_onclick: "openEditModal('flexi_rd', #{frd[:id]})",
+                        delete_onclick: "confirmDeleteItem('flexi_rd', #{frd[:id]}, '#{j("#{frd[:bank]} Flexi RD")}')"
+                      ) %>
+                </td>
+              </tr>
+            <% end %>
+            <% if @flexi_rds.empty? %>
+              <tr><td colspan="5" class="py-6 text-center text-slate-500">No Flexi RDs added yet.</td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+

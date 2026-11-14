@@ -1,8 +1,6 @@
-# packages/investments/fixed_income/package.yml
 enforce_dependencies: true
-enforce_privacy: true
 dependencies:
-  - "packages/core"
+  - packages/core
 metadata:
-  description: "Fixed Deposits, Recurring Deposits, and Flexi-RD compounding calculation engine"
-
+  owner: FixedIncomeDesk
+  description: Fixed Deposit, Recurring Deposit, Flexi RD, and Post-Tax slab interest calculations.

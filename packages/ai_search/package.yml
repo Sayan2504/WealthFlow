@@ -1,0 +1,13 @@
+enforce_dependencies: true
+dependencies:
+  - packages/core
+  - packages/dashboard
+  - packages/market_data
+  - packages/tax_planning
+  - packages/investments/fixed_income
+  - packages/investments/mutual_funds
+  - packages/investments/retirement_funds
+metadata:
+  owner: AiSearchDesk
+  description: AI Financial Omnibar engine synthesizing live portfolio Q&A, navigation shortcuts, and AMFI catalog hits.
+

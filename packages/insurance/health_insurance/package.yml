@@ -1,8 +1,6 @@
-# packages/insurance/health_insurance/package.yml
 enforce_dependencies: true
-enforce_privacy: true
 dependencies:
-  - "packages/core"
+  - packages/core
 metadata:
-  description: "Health insurance policies, family floaters, coverage riders, deductibles and emergency health buffer"
-
+  owner: HealthInsuranceDesk
+  description: Health & medical policy cover adequacy, premium, and renewal status diagnostics.

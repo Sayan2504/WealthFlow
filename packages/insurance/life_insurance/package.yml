@@ -1,7 +1,6 @@
-# packages/insurance/life_insurance/package.yml
 enforce_dependencies: true
-enforce_privacy: true
 dependencies:
-  - "packages/core"
+  - packages/core
 metadata:
-  description: "Term life insurance, endowment/ULIP coverage, and human life value adequacy engine"
+  owner: LifeProtectionDesk
+  description: Life term cover adequacy vs human life value and ULIP tracking.

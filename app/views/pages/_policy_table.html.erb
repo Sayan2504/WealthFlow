@@ -1,0 +1,72 @@
+<section class="glass-card rounded-2xl p-5">
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div>
+      <h2 class="text-sm font-bold text-white"><%= title %> (<%= policies.size %>)</h2>
+      <p class="text-xs text-slate-400"><%= subtitle %></p>
+    </div>
+    <button type="button" onclick="openAddModal('<%= entity_type %>')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold <%= btn_class %> transition-colors">
+      + Add Policy
+    </button>
+  </div>
+
+  <div class="overflow-x-auto card-scroll">
+    <table class="w-full text-left border-collapse text-xs">
+      <thead>
+        <tr class="text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+          <th class="py-2.5 pr-3">Insurer &amp; Plan</th>
+          <th class="py-2.5 px-3">Insured / Nominee</th>
+          <th class="py-2.5 px-3">Policy No / Dates</th>
+          <th class="py-2.5 px-3 text-right">Sum Insured</th>
+          <th class="py-2.5 px-3 text-right">Premium / yr</th>
+          <th class="py-2.5 px-3 text-right">Status</th>
+          <th class="py-2.5 pl-3 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% policies.each do |row| %>
+          <% pol = row[:raw]; st = row[:status] %>
+          <%
+            st_cls = case st[:status]
+                     when "Expired" then "bg-rose-950/80 text-rose-300 border-rose-700/60"
+                     when "Renew Soon" then "bg-amber-950/80 text-amber-300 border-amber-700/60"
+                     else "bg-emerald-950/80 text-emerald-300 border-emerald-700/60"
+                     end
+          %>
+          <tr class="border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors">
+            <td class="py-3 pr-3">
+              <div class="font-semibold text-white"><%= pol[:policy_name] %></div>
+              <div class="text-[11px] text-slate-400"><%= pol[:insurer] %><%= pol[:policy_type].present? ? " • #{pol[:policy_type]}" : "" %></div>
+              <% if pol[:asset_ref].present? %>
+                <div class="text-[10px] text-indigo-300 mt-0.5">Linked: <%= pol[:asset_ref] %></div>
+              <% end %>
+            </td>
+            <td class="py-3 px-3">
+              <div class="text-slate-200"><%= pol[:insured_person].presence || "—" %></div>
+              <div class="text-[10px] text-slate-400">Nominee: <%= pol[:nominee_person].presence || "—" %></div>
+            </td>
+            <td class="py-3 px-3 font-mono">
+              <div class="text-slate-300"><%= pol[:policy_no].presence || "—" %></div>
+              <div class="text-[10px] text-slate-500"><%= format_date_dmy(pol[:start_date]) %> → <%= format_date_dmy(pol[:end_date]) %></div>
+            </td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-white"><%= format_inr(pol[:sum_insured]) %></td>
+            <td class="py-3 px-3 text-right font-mono text-amber-300"><%= format_inr(pol[:annual_premium]) %></td>
+            <td class="py-3 px-3 text-right">
+              <span class="px-2 py-0.5 rounded-full text-[10px] border <%= st_cls %>"><%= st[:status] %></span>
+              <div class="text-[10px] font-mono text-slate-500 mt-0.5"><%= st[:days_to_expiry] >= 0 ? "#{st[:days_to_expiry]}d left" : "#{-st[:days_to_expiry]}d ago" %></div>
+            </td>
+            <td class="py-3 pl-3 text-right">
+              <%= render_row_action_buttons(
+                    edit_onclick: "openEditModal('#{entity_type}', #{pol[:id]})",
+                    delete_onclick: "confirmDeleteItem('#{entity_type}', #{pol[:id]}, '#{j(pol[:policy_name])}')"
+                  ) %>
+            </td>
+          </tr>
+        <% end %>
+        <% if policies.empty? %>
+          <tr><td colspan="7" class="py-6 text-center text-slate-500">No policies added in this category yet.</td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+

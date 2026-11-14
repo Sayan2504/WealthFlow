@@ -1,6 +1,6 @@
-# packages/liabilities/home_loan/package.yml
 enforce_dependencies: true
-enforce_privacy: true
 dependencies:
-  - "packages/core"
-
+  - packages/core
+metadata:
+  owner: LiabilitiesDesk
+  description: Home loan EMI calculation, amortization metrics, and repayment progress.

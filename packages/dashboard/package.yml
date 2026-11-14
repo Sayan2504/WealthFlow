@@ -1,16 +1,14 @@
-# packages/dashboard/package.yml
 enforce_dependencies: true
-enforce_privacy: true
 dependencies:
-  - "packages/core"
-  - "packages/investments/fixed_income"
-  - "packages/investments/mutual_funds"
-  - "packages/investments/retirement_funds"
-  - "packages/insurance/health_insurance"
-  - "packages/insurance/life_insurance"
-  - "packages/liabilities/home_loan"
-  - "packages/banking"
-  - "packages/tax_planning"
+  - packages/core
+  - packages/banking
+  - packages/tax_planning
+  - packages/investments/fixed_income
+  - packages/investments/mutual_funds
+  - packages/investments/retirement_funds
+  - packages/insurance/health_insurance
+  - packages/insurance/life_insurance
+  - packages/liabilities/home_loan
 metadata:
-  description: "Cross-boundary aggregator for net worth, asset allocation, and financial health telemetry"
-
+  owner: ExecutiveDashboard
+  description: Top-level Net Worth and asset-class orchestrator combining domain packages.

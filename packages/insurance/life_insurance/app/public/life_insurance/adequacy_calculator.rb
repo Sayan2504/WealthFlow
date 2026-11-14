@@ -1,37 +1,31 @@
-# packages/insurance/life_insurance/app/public/life_insurance/adequacy_calculator.rb
 # frozen_string_literal: true
 
-require "bigdecimal"
-
 module LifeInsurance
+  # Life protection cover adequacy (Human Life Value multiplier) and ULIP fund summary.
   class AdequacyCalculator
-    # Human Life Value (HLV) standard metric: 15-20x annual income or income-replacement model
-    RECOMMENDED_INCOME_MULTIPLIER = 15
+    def self.summarize(life_policies, ulip = {}, annual_income: 1_800_000)
+      list = Array(life_policies).map(&:with_indifferent_access)
+      sum_insured = list.sum { |p| p[:sum_insured].to_f }
+      premium = list.sum { |p| p[:annual_premium].to_f }
+      recommended_cover = annual_income.to_f * 15
+      adequacy_pct = recommended_cover.positive? ? [((sum_insured / recommended_cover) * 100.0).round, 100].min : 100
 
-    def self.target_coverage(annual_income:, outstanding_liabilities: 0)
-      income = BigDecimal(annual_income.to_s)
-      liabilities = BigDecimal(outstanding_liabilities.to_s)
+      ulip_h = (ulip || {}).with_indifferent_access
+      ulip_paid = ulip_h[:total_paid].to_f
+      ulip_val = ulip_h[:current_value].to_f
+      ulip_gain = ulip_val - ulip_paid
 
-      (income * RECOMMENDED_INCOME_MULTIPLIER) + liabilities
-    end
-
-    def self.adequacy_ratio(current_life_cover:, annual_income:, outstanding_liabilities: 0)
-      target = target_coverage(annual_income: annual_income, outstanding_liabilities: outstanding_liabilities)
-      return BigDecimal("0.0") if target.zero?
-
-      cover = BigDecimal(current_life_cover.to_s)
-      ((cover / target) * 100).round(1)
-    end
-
-    def self.coverage_health_status(ratio)
-      r = BigDecimal(ratio.to_s)
-      if r >= 100
-        { status: :optimal, label: "Optimal Cover", color: "emerald" }
-      elsif r >= 60
-        { status: :moderate, label: "Moderate Cover", color: "amber" }
-      else
-        { status: :underinsured, label: "Underinsured", color: "rose" }
-      end
+      {
+        sumInsured: sum_insured,
+        premium: premium,
+        count: list.size,
+        recommendedCover: recommended_cover.round,
+        adequacyPct: adequacy_pct,
+        ulipPaid: ulip_paid,
+        ulipValue: ulip_val,
+        ulipGain: ulip_gain,
+        sumInsuredInr: Core::CurrencyFormatter.format_inr(sum_insured)
+      }
     end
   end
 end

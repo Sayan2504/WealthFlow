@@ -19,6 +19,11 @@ module Wealthflow
     config.autoload_lib(ignore: %w[assets tasks])
     config.generators.system_tests = nil
 
+    config.autoload_paths << Rails.root.join("app/services")
+    package_public_paths = Dir[Rails.root.join("packages/**/app/public")]
+    config.autoload_paths.concat(package_public_paths)
+    config.eager_load_paths.concat(package_public_paths)
+
     # --- Locale & time -------------------------------------------------
     config.time_zone = "Asia/Kolkata"
     config.i18n.default_locale = :en
@@ -40,9 +45,6 @@ module Wealthflow
     config.x.max_failed_logins = 5
     config.x.lockout_period = 15.minutes
     config.x.max_upload_bytes = 10.megabytes
-
-    # --- Errors rendered by our own controller --------------------------
-    config.exceptions_app = routes
 
     # --- Jobs -----------------------------------------------------------
     config.active_job.queue_adapter = :solid_queue

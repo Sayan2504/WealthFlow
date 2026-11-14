@@ -18,6 +18,9 @@ gem "solid_queue"
 gem "bootsnap", require: false
 
 # --- WealthFlow ---
+gem "devise", "~> 4.9"            # full authentication & registration
+gem "packwerk", "~> 3.1"          # modular monolith boundary enforcement
+gem "ransack", "~> 4.2"           # global multi-model search engine
 gem "view_component", "~> 3.21"   # the only UI component layer
 gem "chartkick"                   # Chart.js charts
 gem "groupdate"                   # time series grouping for charts

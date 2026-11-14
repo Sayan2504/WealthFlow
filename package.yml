@@ -1,0 +1,15 @@
+enforce_dependencies: true
+dependencies:
+  - packages/core
+  - packages/banking
+  - packages/tax_planning
+  - packages/dashboard
+  - packages/market_data
+  - packages/reporting
+  - packages/ai_search
+  - packages/investments/fixed_income
+  - packages/investments/mutual_funds
+  - packages/investments/retirement_funds
+  - packages/insurance/health_insurance
+  - packages/insurance/life_insurance
+  - packages/liabilities/home_loan

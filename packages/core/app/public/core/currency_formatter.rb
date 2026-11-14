@@ -1,53 +1,58 @@
-# packages/core/app/public/core/currency_formatter.rb
 # frozen_string_literal: true
 
 module Core
-  class CurrencyFormatter
-    # Formats number using Indian Lakhs & Crores grouping system: ₹ 12,34,567.00
-    def self.format_inr(amount, precision: 2, symbol: "₹")
-      return "#{symbol} 0.00" if amount.nil?
+  # Shared Indian currency, Lakh/Crore compact formatting, and DD/MM/YYYY date formatting.
+  module CurrencyFormatter
+    module_function
 
-      val = BigDecimal(amount.to_s)
-      is_negative = val.negative?
-      val = val.abs
+    def format_num(val, decimals = 0)
+      n = val.to_f
+      n = 0.0 if n.nan? || n.infinite?
+      sign = n.negative? ? "-" : ""
+      fixed = Kernel.format("%.#{decimals}f", n.abs)
+      int_part, dec_part = fixed.split(".")
 
-      parts = sprintf("%.#{precision}f", val).split(".")
-      integer_part = parts[0]
-      decimal_part = parts[1]
-
-      if integer_part.length > 3
-        last_three = integer_part[-3..]
-        remaining = integer_part[0...-3]
-        formatted_remaining = remaining.reverse.gsub(/(\d{2})(?=\d)/, '\1,').reverse
-        formatted_int = "#{formatted_remaining},#{last_three}"
-      else
-        formatted_int = integer_part
+      if int_part.length > 3
+        last_three = int_part[-3..]
+        rest = int_part[0...-3].reverse.scan(/\d{1,2}/).join(",").reverse
+        int_part = "#{rest},#{last_three}"
       end
 
-      result = precision.positive? ? "#{formatted_int}.#{decimal_part}" : formatted_int
-      prefix = is_negative ? "-#{symbol} " : "#{symbol} "
-      "#{prefix}#{result}"
+      formatted = decimals.positive? ? "#{int_part}.#{dec_part}" : int_part
+      "#{sign}#{formatted}"
     end
 
-    # Compact formatter: ₹12.5L or ₹1.4Cr
-    def self.format_compact(amount, symbol: "₹")
-      return "#{symbol}0" if amount.nil?
+    def format_inr(val, decimals = 0)
+      n = val.to_f
+      n = 0.0 if n.nan? || n.infinite?
+      sign = n.negative? ? "-" : ""
+      "#{sign}₹#{format_num(n.abs, decimals)}"
+    end
 
-      val = BigDecimal(amount.to_s)
-      is_negative = val.negative?
-      val = val.abs
+    def format_compact(val)
+      raw = val.to_f
+      raw = 0.0 if raw.nan? || raw.infinite?
+      v = raw.abs
+      sign = raw.negative? ? "-" : ""
+      if v >= 10_000_000
+        "#{sign}₹#{Kernel.format('%.2f', v / 10_000_000.0)} Cr"
+      elsif v >= 100_000
+        "#{sign}₹#{Kernel.format('%.2f', v / 100_000.0)} L"
+      elsif v >= 1_000
+        "#{sign}₹#{Kernel.format('%.1f', v / 1_000.0)} K"
+      else
+        "#{sign}₹#{v.round}"
+      end
+    end
 
-      formatted = if val >= 10_000_000
-                    "#{(val / 10_000_000).round(2)} Cr"
-                  elsif val >= 100_000
-                    "#{(val / 100_000).round(2)} L"
-                  elsif val >= 1_000
-                    "#{(val / 1_000).round(1)} K"
-                  else
-                    val.round(0).to_s
-                  end
+    def format_date_dmy(iso_str, blank_fallback = "—")
+      str = iso_str.to_s.strip
+      return blank_fallback if str.empty? || str == "—"
 
-      is_negative ? "-#{symbol}#{formatted}" : "#{symbol}#{formatted}"
+      parts = str.split("-")
+      return str unless parts.length == 3
+
+      "#{parts[2]}/#{parts[1]}/#{parts[0]}"
     end
   end
 end
