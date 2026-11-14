@@ -47,19 +47,15 @@ export default class extends Controller {
     this.modeValue = newMode
     this.syncModeUi()
 
-    if (window.Motion && typeof window.Motion.animate === "function") {
-      if (clickedBtn) {
-        window.Motion.animate(
-          clickedBtn,
-          { scale: [0.9, 1.05, 1], opacity: [0.7, 1] },
-          { duration: 0.44, easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
-        )
+    if (window.Motion) {
+      if (clickedBtn && typeof window.Motion.waveGroup === "function") {
+        window.Motion.waveGroup(this.modeBtnTargets, clickedBtn)
       }
-      if (this.hasInputTarget) {
+      if (this.hasInputTarget && typeof window.Motion.animate === "function") {
         window.Motion.animate(
           this.inputTarget,
-          { opacity: [0.4, 1], x: [8, 0] },
-          { duration: 0.38, easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
+          { opacity: [0.55, 1], x: [5, 0] },
+          { duration: 0.24, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
         )
       }
     }

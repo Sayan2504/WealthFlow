@@ -6,11 +6,14 @@ export default class extends Controller {
   static targets = ["button"]
   static values = {
     default: { type: String, default: "midnight" },
-    modes: { type: Object, default: { midnight: "dark", light: "light", aurora: "dark" } }
+    modes: { type: Object, default: { midnight: "dark", solstice: "light", aurora: "dark" } }
   }
 
   connect() {
     let saved = localStorage.getItem("wf_theme") || this.defaultValue
+    if (saved === "light" && !this.modesValue[saved]) {
+      saved = "solstice"
+    }
     if (saved === "dark" && !this.modesValue[saved]) {
       saved = this.defaultValue
     }
@@ -20,24 +23,24 @@ export default class extends Controller {
   select(event) {
     const clickedBtn = event.currentTarget
     const theme = clickedBtn?.dataset?.themeValue || this.defaultValue
-    this.applyTheme(theme, true)
 
-    if (window.Motion) {
-      if (typeof window.Motion.waveGroup === "function") {
-        window.Motion.waveGroup(this.buttonTargets, clickedBtn)
+    const commitTheme = () => this.applyTheme(theme, true)
+    const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
+    if (typeof document.startViewTransition === "function" && !reduced) {
+      document.documentElement.classList.add("wf-theme-curtain")
+      const vt = document.startViewTransition(() => commitTheme())
+      if (vt && vt.finished) {
+        vt.finished.finally(() => document.documentElement.classList.remove("wf-theme-curtain"))
+      } else {
+        setTimeout(() => document.documentElement.classList.remove("wf-theme-curtain"), 600)
       }
-      if (typeof window.Motion.wave === "function") {
-        window.Motion.wave("main .glass-card", { opacity: [0.88, 1], y: [6, 0], step: 0.04, duration: 0.52 })
-      }
+    } else {
+      commitTheme()
     }
 
-    if (window.Motion) {
-      if (typeof window.Motion.waveGroup === "function") {
-        window.Motion.waveGroup(this.buttonTargets, clickedBtn)
-      }
-      if (typeof window.Motion.wave === "function") {
-        window.Motion.wave("main .glass-card", { opacity: [0.88, 1], y: [6, 0], step: 0.04, duration: 0.52 })
-      }
+    if (window.Motion && typeof window.Motion.waveGroup === "function") {
+      window.Motion.waveGroup(this.buttonTargets, clickedBtn)
     }
   }
 

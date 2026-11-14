@@ -94,7 +94,7 @@ RSpec.describe "WealthFlow Architecture, Security, Devise Isolation, Ransack & Z
       expect(header_fragment).to include('id="global-top-search"')
       expect(header_fragment).to include('id="open-ai-drawer-btn"')
       expect(header_fragment).to include('data-theme-value="midnight"')
-      expect(header_fragment).to include('data-theme-value="light"')
+      expect(header_fragment).to include('data-theme-value="solstice"')
       expect(header_fragment).to include('data-theme-value="aurora"')
       expect(header_fragment).not_to include('href="/fixed_income"')
       expect(header_fragment).not_to include('href="/mutual_funds"')

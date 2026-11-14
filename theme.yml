@@ -3,7 +3,7 @@ default_theme: midnight
 themes:
   midnight:
     label: Midnight Slate
-    short_label: Dark
+    short_label: Midnight
     mode: dark
     description: Deep obsidian slate with electric indigo accents
     tokens:
@@ -18,11 +18,11 @@ themes:
       accent: "#6366f1"
       accent_soft: "rgba(99, 102, 241, 0.16)"
 
-  light:
-    label: Daylight Classic
-    short_label: Light
+  solstice:
+    label: Solstice Ivory
+    short_label: Solstice
     mode: light
-    description: Crisp daylight workspace with high-contrast slate typography
+    description: Crisp daylight ivory workspace with high-contrast slate typography
     tokens:
       bg_primary: "#f1f5f9"
       bg_secondary: "#ffffff"

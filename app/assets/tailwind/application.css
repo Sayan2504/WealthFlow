@@ -43,7 +43,32 @@ body {
   background-attachment: fixed;
   color: var(--wf-text-primary);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  transition: background-color 0.42s cubic-bezier(0.22, 1, 0.36, 1), color 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background-color 0.28s cubic-bezier(0.22, 1, 0.36, 1), color 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.wf-theme-curtain::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+
+html.wf-theme-curtain::view-transition-new(root) {
+  z-index: 2;
+  animation: wf-curtain-from-top 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes wf-curtain-from-top {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0% 0);
+  }
 }
 
 .font-mono,
@@ -53,22 +78,32 @@ body {
 
 .glass-card {
   background: var(--wf-card-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--wf-card-border);
   box-shadow: 0 10px 30px -14px rgba(2, 6, 23, 0.45);
-  transition: border-color 0.42s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.42s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: border-color 0.28s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.wf-pre-animate main .glass-card {
+  opacity: 0;
+}
+
+html.wf-dealing .glass-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  will-change: transform, opacity;
 }
 
 button,
 a {
-  transition: background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease, box-shadow 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.22s cubic-bezier(0.22, 1, 0.36, 1), color 0.20s ease, box-shadow 0.22s ease;
 }
 
 input,
 select,
 textarea {
-  transition: background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease, box-shadow 0.35s ease;
+  transition: background-color 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.22s cubic-bezier(0.22, 1, 0.36, 1), color 0.20s ease, box-shadow 0.22s ease;
 }
 
 .wf-click-wave {
@@ -210,13 +245,24 @@ html[data-mode="light"] .bg-indigo-950\/75,
 html[data-mode="light"] .bg-indigo-950\/60,
 html[data-mode="light"] .bg-indigo-950\/50,
 html[data-mode="light"] .bg-indigo-950\/40,
+html[data-mode="light"] .bg-indigo-950\/25,
+html[data-mode="light"] .bg-indigo-600\/25,
+html[data-mode="light"] .bg-indigo-600\/20,
+html[data-mode="light"] .bg-indigo-500\/30,
+html[data-mode="light"] .bg-indigo-500\/20,
 html[data-mode="light"] .bg-indigo-500\/15,
 html[data-mode="light"] .bg-indigo-500\/10 {
   background-color: #eef2ff !important;
 }
 
+html[data-mode="light"] .bg-cyan-950\/60,
+html[data-mode="light"] .bg-cyan-950\/40,
 html[data-mode="light"] .bg-cyan-500\/15,
 html[data-mode="light"] .bg-cyan-500\/10,
+html[data-mode="light"] .bg-teal-950\/60,
+html[data-mode="light"] .bg-teal-950\/40,
+html[data-mode="light"] .bg-teal-500\/15,
+html[data-mode="light"] .bg-teal-500\/10,
 html[data-mode="light"] .bg-sky-500\/10 {
   background-color: #ecfeff !important;
 }
@@ -228,6 +274,7 @@ html[data-mode="light"] .bg-gradient-to-r.from-indigo-950\/40,
 html[data-mode="light"] .bg-gradient-to-br.from-emerald-950\/40,
 html[data-mode="light"] .bg-gradient-to-br.from-amber-950\/40,
 html[data-mode="light"] .bg-gradient-to-br.from-rose-950\/40,
+html[data-mode="light"] .bg-gradient-to-br.from-indigo-950\/60,
 html[data-mode="light"] .bg-gradient-to-br.from-indigo-950\/40 {
   background-image: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
 }
@@ -267,6 +314,7 @@ html[data-mode="light"] .border-indigo-500\/40 {
 }
 
 html[data-mode="light"] .text-white,
+html[data-mode="light"] .text-slate-50,
 html[data-mode="light"] .text-slate-100,
 html[data-mode="light"] .text-slate-200 {
   color: #0f172a !important;
@@ -281,31 +329,41 @@ html[data-mode="light"] .text-slate-500 {
   color: #475569 !important;
 }
 
+html[data-mode="light"] .text-indigo-100,
 html[data-mode="light"] .text-indigo-200,
 html[data-mode="light"] .text-indigo-300,
 html[data-mode="light"] .text-indigo-400 {
   color: #4338ca !important;
 }
 
+html[data-mode="light"] .text-emerald-100,
 html[data-mode="light"] .text-emerald-200,
 html[data-mode="light"] .text-emerald-300,
 html[data-mode="light"] .text-emerald-400 {
   color: #047857 !important;
 }
 
+html[data-mode="light"] .text-cyan-100,
 html[data-mode="light"] .text-cyan-200,
 html[data-mode="light"] .text-cyan-300,
 html[data-mode="light"] .text-cyan-400,
-html[data-mode="light"] .text-sky-300 {
+html[data-mode="light"] .text-teal-200,
+html[data-mode="light"] .text-teal-300,
+html[data-mode="light"] .text-teal-400,
+html[data-mode="light"] .text-sky-200,
+html[data-mode="light"] .text-sky-300,
+html[data-mode="light"] .text-sky-400 {
   color: #0369a1 !important;
 }
 
+html[data-mode="light"] .text-amber-100,
 html[data-mode="light"] .text-amber-200,
 html[data-mode="light"] .text-amber-300,
 html[data-mode="light"] .text-amber-400 {
   color: #b45309 !important;
 }
 
+html[data-mode="light"] .text-rose-100,
 html[data-mode="light"] .text-rose-200,
 html[data-mode="light"] .text-rose-300,
 html[data-mode="light"] .text-rose-400 {
@@ -315,20 +373,49 @@ html[data-mode="light"] .text-rose-400 {
 html[data-mode="light"] .hover\:bg-slate-800:hover,
 html[data-mode="light"] .hover\:bg-slate-800\/70:hover,
 html[data-mode="light"] .hover\:bg-slate-800\/50:hover,
-html[data-mode="light"] .hover\:bg-slate-800\/30:hover {
-  background-color: #f1f5f9 !important;
+html[data-mode="light"] .hover\:bg-slate-800\/30:hover,
+html[data-mode="light"] .hover\:bg-slate-700:hover {
+  background-color: #e2e8f0 !important;
 }
 
-/* Preserve white ink on solid accent CTAs, active tabs, and logo icons in Light Mode */
-html[data-mode="light"] a[class*="bg-indigo-600"],
-html[data-mode="light"] button[class*="bg-indigo-600"],
-html[data-mode="light"] input[class*="bg-indigo-600"],
+html[data-mode="light"] .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+
+/* Sidebar active navigation highlight in Light Mode */
+html[data-mode="light"] aside nav a.bg-indigo-600\/25 {
+  background-color: #e0e7ff !important;
+  border-color: #6366f1 !important;
+  color: #312e81 !important;
+}
+
+html[data-mode="light"] aside nav a.bg-indigo-600\/25 span:first-child {
+  color: #312e81 !important;
+  font-weight: 600;
+}
+
+html[data-mode="light"] aside nav a .bg-indigo-500\/30 {
+  background-color: #c7d2fe !important;
+  color: #312e81 !important;
+}
+
+/* Preserve white ink ONLY on solid accent CTAs, active solid pills, and logo icons in Light Mode */
+html[data-mode="light"] a[class~="bg-indigo-600"],
+html[data-mode="light"] button[class~="bg-indigo-600"],
+html[data-mode="light"] input[class~="bg-indigo-600"],
 html[data-mode="light"] input[class*="from-indigo-600"],
 html[data-mode="light"] input[class*="from-emerald-600"],
-html[data-mode="light"] button[class*="bg-emerald-600"],
-html[data-mode="light"] button[class*="bg-rose-600"],
+html[data-mode="light"] button[class~="bg-emerald-600"],
+html[data-mode="light"] button[class~="bg-rose-600"],
 html[data-mode="light"] .wf-brand-icon,
-html[data-mode="light"] .wf-cta-solid {
+html[data-mode="light"] .wf-cta-solid,
+html[data-mode="light"] .wf-theme-btn-active,
+html[data-mode="light"] a[class~="bg-indigo-600"]:hover,
+html[data-mode="light"] button[class~="bg-indigo-600"]:hover,
+html[data-mode="light"] button[class~="bg-emerald-600"]:hover,
+html[data-mode="light"] button[class~="bg-rose-600"]:hover,
+html[data-mode="light"] .wf-cta-solid:hover,
+html[data-mode="light"] .wf-theme-btn-active:hover {
   color: #ffffff !important;
 }
 
@@ -337,6 +424,18 @@ html[data-mode="light"] .wf-carousel {
   background-image: linear-gradient(135deg, #ffffff 0%, #eef2ff 55%, #ecfeff 100%) !important;
   border-color: #cbd5e1 !important;
   background-color: #ffffff !important;
+}
+
+html[data-mode="light"] .wf-carousel img {
+  filter: invert(0.92) hue-rotate(180deg) saturate(1.12);
+}
+
+html[data-mode="light"] .wf-carousel [data-carousel-target="dot"].bg-indigo-400 {
+  background-color: #4f46e5 !important;
+}
+
+html[data-mode="light"] .wf-carousel [data-carousel-target="dot"].bg-slate-600 {
+  background-color: #94a3b8 !important;
 }
 
 html[data-mode="light"] .wf-toast-success {

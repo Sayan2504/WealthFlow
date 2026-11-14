@@ -192,8 +192,8 @@
       if (window.Motion && typeof window.Motion.animate === "function") {
         window.Motion.animate(
           targetMenu,
-          { opacity: [0, 1], y: [-8, 0], scale: [0.97, 1] },
-          { duration: 0.38, easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
+          { opacity: [0, 1], y: [-6, 0], scale: [0.985, 1] },
+          { duration: 0.24, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
         );
       }
     }
@@ -288,8 +288,8 @@
     if (window.Motion && typeof window.Motion.animate === "function") {
       window.Motion.animate(
         pop,
-        { opacity: [0, 1], y: [-8, 0], scale: [0.97, 1] },
-        { duration: 0.38, easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
+        { opacity: [0, 1], y: [-6, 0], scale: [0.985, 1] },
+        { duration: 0.24, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
       );
     }
   };
@@ -398,8 +398,8 @@
     if (!el || !window.Motion || typeof window.Motion.animate !== "function") return;
     window.Motion.animate(
       el,
-      { opacity: [0, 1], y: [10, 0] },
-      { duration: opts.duration || 0.44, easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
+      { opacity: [0.35, 1], y: [6, 0] },
+      { duration: opts.duration || 0.26, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
     );
   }
 
@@ -458,35 +458,41 @@
         activeDrawerAnims.push(
           window.Motion.animate(
             backdrop,
-            { opacity: [0, 1] },
-            { duration: 0.48, easing: [0.22, 1, 0.36, 1] }
+            [{ opacity: 0 }, { opacity: 1 }],
+            { duration: 0.30, easing: [0.22, 1, 0.36, 1] }
           )
         );
         activeDrawerAnims.push(
           window.Motion.animate(
             panel,
-            { x: ["100%", "0%"], opacity: [0.92, 1] },
-            { duration: 0.56, easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
+            [
+              { transform: "translate3d(100%, 0, 0)" },
+              { transform: "translate3d(0%, 0, 0)" }
+            ],
+            { duration: 0.40, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
           )
         );
-      }
-
-      const innerItems = [];
-      if (headerEl) innerItems.push(headerEl);
-      innerItems.push(...Array.from(bodyEl.children || []));
-      if (footerEl && !footerEl.classList.contains("hidden")) innerItems.push(footerEl);
-
-      if (innerItems.length) {
+        if (bodyEl) {
+          activeDrawerAnims.push(
+            window.Motion.animate(
+              bodyEl,
+              [
+                { opacity: 0.72, transform: "translate3d(0, 8px, 0)" },
+                { opacity: 1, transform: "translate3d(0, 0, 0)" }
+              ],
+              { duration: 0.32, delay: 0.08, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
+            )
+          );
+        }
+      } else if (bodyEl) {
         activeDrawerAnims.push(
           window.Motion.animate(
-            innerItems,
-            { opacity: [0, 1], y: [14, 0] },
-            {
-              duration: 0.46,
-              delay: window.Motion.stagger(0.05, { start: wasClosed ? 0.12 : 0.02 }),
-              easing: [0.16, 1, 0.3, 1],
-              clearOnFinish: true
-            }
+            bodyEl,
+            [
+              { opacity: 0.65, transform: "translate3d(0, 6px, 0)" },
+              { opacity: 1, transform: "translate3d(0, 0, 0)" }
+            ],
+            { duration: 0.24, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
           )
         );
       }
@@ -512,39 +518,47 @@
 
     if (footerEl) footerEl.classList.add("hidden");
 
-    if (window.Motion && typeof window.Motion.animate === "function") {
-      activeDrawerAnims.push(
-        window.Motion.animate(
-          backdrop,
-          { opacity: [1, 0] },
-          { duration: 0.40, easing: [0.22, 1, 0.36, 1] }
-        )
-      );
-      activeDrawerAnims.push(
-        window.Motion.animate(
-          panel,
-          { x: ["0%", "100%"], opacity: [1, 0.94] },
-          { duration: 0.44, easing: [0.32, 0, 0.67, 0] }
-        )
-      );
-
-      drawerHideTimer = setTimeout(() => {
-        cancelDrawerAnimations();
-        backdrop.classList.add("opacity-0");
-        backdrop.classList.remove("opacity-100");
-        panel.classList.add("translate-x-full");
-        panel.classList.remove("translate-x-0");
-        drawer.classList.add("hidden");
-        isClosingDrawer = false;
+    const finishClose = () => {
+      if (!isClosingDrawer) return;
+      drawer.classList.add("hidden");
+      backdrop.classList.add("opacity-0");
+      backdrop.classList.remove("opacity-100");
+      panel.classList.add("translate-x-full");
+      panel.classList.remove("translate-x-0");
+      cancelDrawerAnimations();
+      isClosingDrawer = false;
+      if (drawerHideTimer) {
+        clearTimeout(drawerHideTimer);
         drawerHideTimer = null;
-      }, 440);
+      }
+    };
+
+    if (window.Motion && typeof window.Motion.animate === "function") {
+      const bgAnim = window.Motion.animate(
+        backdrop,
+        [{ opacity: 1 }, { opacity: 0 }],
+        { duration: 0.26, easing: [0.22, 1, 0.36, 1] }
+      );
+      const panelAnim = window.Motion.animate(
+        panel,
+        [
+          { transform: "translate3d(0%, 0, 0)" },
+          { transform: "translate3d(100%, 0, 0)" }
+        ],
+        { duration: 0.30, easing: [0.4, 0, 0.2, 1], fill: "forwards" }
+      );
+      activeDrawerAnims.push(bgAnim, panelAnim);
+      if (panelAnim && panelAnim.finished) {
+        panelAnim.finished.then(finishClose).catch(finishClose);
+      }
+      drawerHideTimer = setTimeout(finishClose, 340);
     } else {
+      isClosingDrawer = false;
       backdrop.classList.add("opacity-0");
       backdrop.classList.remove("opacity-100");
       panel.classList.add("translate-x-full");
       panel.classList.remove("translate-x-0");
       drawer.classList.add("hidden");
-      isClosingDrawer = false;
     }
   };
 
@@ -974,21 +988,20 @@
   window.setFiTaxSlab = async function (slabRate) {
     const slab = Number(slabRate || 0);
 
-    document.querySelectorAll(".fi-slab-btn").forEach((btn) => {
+    const slabBtns = Array.from(document.querySelectorAll(".fi-slab-btn"));
+    let activeBtn = null;
+    slabBtns.forEach((btn) => {
       const match = Number(btn.getAttribute("data-slab")) === slab;
+      if (match) activeBtn = btn;
       btn.className =
-        "fi-slab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-all " +
+        "fi-slab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-colors duration-200 " +
         (match
           ? "bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/25"
           : "bg-slate-900/80 text-slate-300 border-slate-700 hover:border-indigo-500/50");
-      if (match && window.Motion && typeof window.Motion.animate === "function") {
-        window.Motion.animate(
-          btn,
-          { scale: [0.92, 1.05, 1] },
-          { duration: 0.44, easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
-        );
-      }
     });
+    if (window.Motion && typeof window.Motion.waveGroup === "function" && activeBtn) {
+      window.Motion.waveGroup(slabBtns, activeBtn);
+    }
 
     try {
       const json = await apiJson("/api/fixed_income/slab_preview", {

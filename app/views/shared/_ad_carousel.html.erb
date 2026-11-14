@@ -148,7 +148,7 @@
           data-index="<%= idx %>"
           data-action="click->carousel#goTo"
           aria-label="Go to slide <%= idx + 1 %>: <%= slide[:title] %>"
-          class="<%= idx == 0 ? 'h-1.5 w-6 rounded-full bg-indigo-400' : 'h-1.5 w-2 rounded-full bg-slate-600' %> transition-all cursor-pointer"
+          class="<%= idx == 0 ? 'h-1.5 w-6 rounded-full bg-indigo-400' : 'h-1.5 w-2 rounded-full bg-slate-600' %> transition-[width,background-color] duration-250 cursor-pointer"
         ></button>
       <% end %>
     </div>

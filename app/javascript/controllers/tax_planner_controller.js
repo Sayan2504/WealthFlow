@@ -128,8 +128,8 @@ export default class extends Controller {
     if (window.Motion && typeof window.Motion.animate === "function" && heroNew && heroOld) {
       window.Motion.animate(
         [heroNew, heroOld],
-        { opacity: [0.55, 1], scale: [0.97, 1], y: [6, 0] },
-        { duration: 0.46, easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
+        { opacity: [0.65, 1], y: [4, 0] },
+        { duration: 0.28, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
       )
     }
   }

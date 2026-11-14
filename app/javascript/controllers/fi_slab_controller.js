@@ -26,7 +26,7 @@ export default class extends Controller {
       const match = Math.abs(Number(btn.getAttribute("data-slab")) - slab) < 0.001
       if (match) activeBtn = btn
       btn.className =
-        "fi-slab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-all " +
+        "fi-slab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-colors duration-200 " +
         (match
           ? "bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/25"
           : "bg-slate-900/80 text-slate-300 border-slate-700 hover:border-indigo-500/50")
@@ -88,7 +88,7 @@ export default class extends Controller {
     if (window.Motion && typeof window.Motion.wave === "function") {
       const targets = [taxEl, netEl, yieldEl, ...updatedCells].filter(Boolean)
       if (targets.length) {
-        window.Motion.wave(targets, { opacity: [0.45, 1], y: [6, -1, 0], step: 0.025, duration: 0.48 })
+        window.Motion.wave(targets, { opacity: [0.55, 1], y: [5, 0], step: 0.02, duration: 0.28 })
       }
     }
   }

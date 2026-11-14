@@ -32,17 +32,9 @@ export default class extends Controller {
       if (window.Motion && typeof window.Motion.animate === "function") {
         window.Motion.animate(
           this.drawerTarget,
-          { x: ["-100%", "0%"] },
-          { duration: 0.48, easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
+          [{ transform: "translate3d(-100%, 0, 0)" }, { transform: "translate3d(0%, 0, 0)" }],
+          { duration: 0.36, easing: [0.22, 1, 0.36, 1], clearOnFinish: true }
         )
-        const links = Array.from(this.drawerTarget.querySelectorAll("nav a"))
-        if (links.length) {
-          window.Motion.animate(
-            links,
-            { opacity: [0, 1], x: [-10, 0] },
-            { duration: 0.42, delay: window.Motion.stagger(0.03), easing: [0.16, 1, 0.3, 1], clearOnFinish: true }
-          )
-        }
       }
     }
   }
