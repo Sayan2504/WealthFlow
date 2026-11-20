@@ -116,6 +116,58 @@
     </div>
   </section>
 
+  <!-- Liquidity Runway, Upcoming 30-Day Cashflow & Compliance Health Strip -->
+  <%
+    runway = @ov[:liquidityRunway] || {}
+    comp = @ov[:compliance] || {}
+    upcoming = Array(@ov[:upcomingEvents])
+  %>
+  <section class="glass-card rounded-2xl p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+    <div class="lg:col-span-4 flex items-center justify-between gap-3 rounded-xl bg-slate-900/70 border border-slate-800 p-3.5">
+      <div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-cyan-300">Emergency Liquidity Runway</div>
+        <div class="text-lg font-bold font-mono text-white mt-0.5"><%= format_num(runway[:runwayMonths], 1) %> Months</div>
+        <div class="text-[11px] text-slate-400">Cash: <span class="font-mono text-slate-200"><%= format_compact(runway[:liquidCash]) %></span> vs Outflow: <span class="font-mono text-slate-200"><%= format_inr(runway[:monthlyOutflow]) %>/mo</span></div>
+      </div>
+      <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shrink-0"><%= runway[:statusLabel] || "Tracked" %></span>
+    </div>
+
+    <div class="lg:col-span-5 rounded-xl bg-slate-900/70 border border-slate-800 p-3.5">
+      <div class="text-[10px] font-bold uppercase tracking-wider text-indigo-300 mb-2">Next 30 Days Cashflow &amp; Deadlines</div>
+      <% if upcoming.any? %>
+        <div class="flex flex-wrap items-center gap-2">
+          <% upcoming.first(4).each do |ev| %>
+            <a href="<%= ev[:url] %>" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/80 hover:bg-slate-800 border border-slate-800 text-[11px] transition-colors">
+              <span class="font-semibold text-white"><%= ev[:label] %></span>
+              <span class="text-slate-400">(<%= ev[:schedule] %>)</span>
+              <span class="font-mono font-bold text-indigo-300"><%= ev[:amount_inr] %></span>
+            </a>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-xs text-slate-400">No upcoming EMI, SIP, or credit card dues scheduled.</div>
+      <% end %>
+    </div>
+
+    <div class="lg:col-span-3 rounded-xl bg-slate-900/70 border border-slate-800 p-3.5 space-y-1.5">
+      <div class="text-[10px] font-bold uppercase tracking-wider text-amber-300">Compliance &amp; Action Radar</div>
+      <div class="flex flex-wrap items-center gap-2 text-[11px]">
+        <% if comp[:missingNominees].to_i > 0 %>
+          <a href="/banking" class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-medium">
+            <%= comp[:missingNominees] %> Missing Nominee(s)
+          </a>
+        <% else %>
+          <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">Nominees Complete</span>
+        <% end %>
+        <% if comp[:maturingFds90d].to_i > 0 %>
+          <a href="/fixed_income" class="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-medium">
+            <%= comp[:maturingFds90d] %> FD(s) &lt; 90d
+          </a>
+        <% end %>
+      </div>
+    </div>
+  </section>
+
   <!-- 7 Module Snapshot Cards -->
   <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
     <!-- Mutual Funds -->
@@ -245,8 +297,23 @@
               </defs>
               <polygon points="<%= tw.dig(:svg, :area_points) %>" fill="url(#grad-wealth)"/>
               <polyline points="<%= tw.dig(:svg, :line_points) %>" fill="none" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <%
+                tw_labels = ["Invested Capital", "Mid-Cycle Value", "Gross Financial Assets", "Consolidated Net Worth"]
+                tw_vals = [format_inr(@ov[:totalInvested]), format_inr((@ov[:totalInvested].to_f + @ov[:totalAssets].to_f) / 2.0), format_inr(tw[:gross_assets]), format_inr(tw[:net_worth])]
+              %>
               <% Array(tw.dig(:svg, :dots)).each_with_index do |dot, idx| %>
-                <circle cx="<%= dot[:x] %>" cy="<%= dot[:y] %>" r="<%= idx == 3 ? 4.5 : 3 %>" fill="<%= idx == 3 ? '#34d399' : '#818cf8' %>" stroke="#0f172a" stroke-width="1.5"/>
+                <circle
+                  cx="<%= dot[:x] %>"
+                  cy="<%= dot[:y] %>"
+                  r="<%= idx == 3 ? 5 : 3.5 %>"
+                  fill="<%= idx == 3 ? '#34d399' : '#818cf8' %>"
+                  stroke="#0f172a"
+                  stroke-width="1.5"
+                  class="cursor-pointer"
+                  data-chart-point
+                  data-chart-label="<%= tw_labels[idx] || "Point #{idx + 1}" %>"
+                  data-chart-value="<%= tw_vals[idx] || '' %>"
+                />
               <% end %>
             </svg>
             <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 px-1 mt-1">
@@ -315,8 +382,23 @@
               </defs>
               <polygon points="<%= hl_g.dig(:svg, :area_points) %>" fill="url(#grad-hl)"/>
               <polyline points="<%= hl_g.dig(:svg, :line_points) %>" fill="none" stroke="#fb7185" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <%
+                hl_labels = ["Sanctioned Loan", "Early Amortization", "Current Outstanding", "Projected Mid-Term", "Target Closure"]
+                hl_vals = [format_inr(hl_g[:original]), format_inr((hl_g[:original].to_f + hl_g[:outstanding].to_f) / 2.0), format_inr(hl_g[:outstanding]), format_inr(hl_g[:outstanding].to_f * 0.5), "₹0"]
+              %>
               <% Array(hl_g.dig(:svg, :dots)).each_with_index do |dot, idx| %>
-                <circle cx="<%= dot[:x] %>" cy="<%= dot[:y] %>" r="<%= idx == 2 ? 5 : 3 %>" fill="<%= idx == 2 ? '#fbbf24' : '#fb7185' %>" stroke="#0f172a" stroke-width="1.5"/>
+                <circle
+                  cx="<%= dot[:x] %>"
+                  cy="<%= dot[:y] %>"
+                  r="<%= idx == 2 ? 5.5 : 3.5 %>"
+                  fill="<%= idx == 2 ? '#fbbf24' : '#fb7185' %>"
+                  stroke="#0f172a"
+                  stroke-width="1.5"
+                  class="cursor-pointer"
+                  data-chart-point
+                  data-chart-label="<%= hl_labels[idx] || "Milestone #{idx + 1}" %>"
+                  data-chart-value="<%= hl_vals[idx] || '' %>"
+                />
               <% end %>
             </svg>
             <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 px-1 mt-1">

@@ -128,6 +128,62 @@ module Api
       render json: { success: true, taxCalc: result }
     end
 
+    def tax_autofill
+      data = ::Portfolio::Repository.load_raw
+      ov = Calculations::DashboardAggregator.calculate_overview(data)
+      tp = (data[:tax_profile] || {}).with_indifferent_access
+
+      ppf_fy = ov.dig(:ppf, :latestFyTotal).to_f
+      ulip_paid = ov.dig(:ulip, :paid).to_f
+      epf_entries = Array(data.dig(:epf, :entries))
+      epf_emp = epf_entries.sum { |e| e[:employee_share].to_f }
+      sec_80c = [150_000.0, ppf_fy + ulip_paid + epf_emp].min.round
+
+      sec_80d = [50_000.0, ov.dig(:health, :premium).to_f].min.round
+      savings_int = ov.dig(:banking, :accounts, :annualInterest).to_f.round
+      sec_80tta = [10_000, savings_int].min
+      fd_rd_int = ov.dig(:postTax, :totalGrossGain).to_f.round
+      total_interest_income = savings_int + fd_rd_int
+
+      hl_out = ov.dig(:homeLoan, :outstanding_principal).to_f
+      hl_rate = ov.dig(:homeLoan, :interest_rate).to_f
+      hl_interest_24b = [200_000, (hl_out * (hl_rate / 100.0)).round].min
+
+      autofill = {
+        gross_salary: (tp[:gross_salary].to_f.positive? ? tp[:gross_salary].to_f.round : current_user&.annual_income.to_f.round),
+        interest_income: total_interest_income,
+        home_loan_interest_24b: hl_interest_24b,
+        sec_80c: sec_80c,
+        sec_80d_health: sec_80d,
+        sec_80tta_savings: sec_80tta
+      }
+
+      merged_payload = tp.merge(autofill)
+      result = Calculations::TaxCalculatorService.calculate_both_regimes(merged_payload, data)
+      render json: { success: true, autofill: autofill, taxCalc: result }
+    end
+
+    def export_json
+      data = ::Portfolio::Repository.load_raw
+      send_data JSON.pretty_generate(data),
+                filename: "WealthFlow_Backup_#{Date.current}.json",
+                type: "application/json; charset=utf-8",
+                disposition: "attachment"
+    end
+
+    def import_portfolio
+      body = parsed_body
+      snapshot = body["portfolio"].is_a?(Hash) ? body["portfolio"] : body.except("controller", "action")
+      unless snapshot.is_a?(Hash) && (snapshot.key?("mutual_funds") || snapshot.key?("fixed_deposits") || snapshot.key?("bank_accounts"))
+        return render(json: { success: false, error: "Invalid portfolio backup JSON structure" }, status: :bad_request)
+      end
+
+      snapshot["user"] ||= {}
+      snapshot["user"]["last_updated"] = Date.current.to_s
+      ::Portfolio::Repository.save_raw(snapshot.deep_stringify_keys)
+      render json: { success: true, message: "Portfolio backup restored successfully" }
+    end
+
     private
 
     def require_unlocked_session!

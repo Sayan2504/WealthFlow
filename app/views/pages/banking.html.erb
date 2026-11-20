@@ -43,20 +43,28 @@
 
   <!-- Bank Accounts Table -->
   <section class="glass-card rounded-2xl p-5">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-sm font-bold text-white">Bank Accounts</h2>
-      <span class="text-xs text-slate-400">Active savings, salary &amp; UPI accounts</span>
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div>
+        <h2 class="text-sm font-bold text-white">Bank Accounts</h2>
+        <span class="text-xs text-slate-400">Click any balance to quick-edit inline • Click column headers to sort</span>
+      </div>
+      <input
+        type="search"
+        data-table-filter="bank-ledger-table"
+        placeholder="Filter accounts by bank, IFSC, or nominee..."
+        class="w-full sm:w-64 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-400"
+      >
     </div>
     <div class="overflow-x-auto card-scroll">
-      <table class="w-full text-left border-collapse text-xs">
+      <table id="bank-ledger-table" data-sortable-table class="w-full text-left border-collapse text-xs">
         <thead>
           <tr class="text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
-            <th class="py-3 pr-3">Bank &amp; Type</th>
+            <th data-sort-col="0" class="py-3 pr-3 cursor-pointer hover:text-white select-none">Bank &amp; Type ↕</th>
             <th class="py-3 px-3">Account / IFSC</th>
             <th class="py-3 px-3">Purpose / Nominee</th>
-            <th class="py-3 px-3 text-right">Interest %</th>
-            <th class="py-3 px-3 text-right">Est. Int/yr</th>
-            <th class="py-3 px-3 text-right">Balance</th>
+            <th data-sort-col="3" data-sort-type="num" class="py-3 px-3 text-right cursor-pointer hover:text-white select-none">Interest % ↕</th>
+            <th data-sort-col="4" data-sort-type="num" class="py-3 px-3 text-right cursor-pointer hover:text-white select-none">Est. Int/yr ↕</th>
+            <th data-sort-col="5" data-sort-type="num" class="py-3 px-3 text-right cursor-pointer hover:text-white select-none">Balance ↕</th>
             <th class="py-3 pl-3 text-right">Actions</th>
           </tr>
         </thead>
@@ -78,11 +86,20 @@
               </td>
               <td class="py-3 px-3">
                 <div class="text-slate-200"><%= acc[:purpose].presence || "—" %></div>
-                <div class="text-[10px] text-slate-400">Nominee: <%= acc[:nominee].presence || "Not set" %></div>
+                <div class="text-[10px] <%= acc[:nominee].present? ? 'text-slate-400' : 'text-amber-300 font-semibold' %>">Nominee: <%= acc[:nominee].presence || "Not set ⚠" %></div>
               </td>
               <td class="py-3 px-3 text-right font-mono text-emerald-300"><%= format_num(rate, 2) %>%</td>
               <td class="py-3 px-3 text-right font-mono text-slate-300"><%= format_inr(est_int) %></td>
-              <td class="py-3 px-3 text-right font-mono font-bold text-white"><%= format_inr(bal, 2) %></td>
+              <td class="py-3 px-3 text-right font-mono font-bold text-white">
+                <button
+                  type="button"
+                  onclick="openQuickBalancePopover('bank_account', <%= acc[:id] %>, <%= bal %>, this)"
+                  title="Click to quick-update balance inline"
+                  class="inline-flex items-center gap-1 hover:text-cyan-300 underline decoration-dotted underline-offset-4 cursor-pointer"
+                >
+                  <span><%= format_inr(bal, 2) %></span>
+                </button>
+              </td>
               <td class="py-3 pl-3 text-right">
                 <%= render_row_action_buttons(
                       edit_onclick: "openEditModal('bank_account', #{acc[:id]})",

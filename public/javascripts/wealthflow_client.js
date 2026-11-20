@@ -75,6 +75,32 @@
     return json;
   }
 
+  function softRefreshCockpit(targetUrl) {
+    const url = targetUrl || window.location.href;
+    try {
+      sessionStorage.setItem("wf_preserve_scroll_y", String(window.scrollY || 0));
+    } catch (_) {}
+    if (window.Turbo && typeof window.Turbo.visit === "function") {
+      window.Turbo.visit(url, { action: "replace" });
+    } else {
+      window.location.reload();
+    }
+  }
+  window.softRefreshCockpit = softRefreshCockpit;
+
+  document.addEventListener("turbo:load", () => {
+    try {
+      const savedY = sessionStorage.getItem("wf_preserve_scroll_y");
+      if (savedY !== null) {
+        sessionStorage.removeItem("wf_preserve_scroll_y");
+        const y = Number(savedY);
+        if (Number.isFinite(y) && y > 0) {
+          requestAnimationFrame(() => window.scrollTo({ top: y, behavior: "instant" }));
+        }
+      }
+    } catch (_) {}
+  });
+
   // ---------------------------------------------------------------------------
   // Toast & Confirm Dialogs
   // ---------------------------------------------------------------------------
@@ -266,7 +292,7 @@
             body: JSON.stringify({ type, id })
           });
           showToast(`Deleted "${label}"`);
-          window.location.reload();
+          softRefreshCockpit();
         } catch (err) {
           showToast(err.message, "error");
         }
@@ -508,6 +534,40 @@
   let drawerHideTimer = null;
   let isClosingDrawer = false;
   let activeDrawerAnims = [];
+  let lastDrawerTriggerEl = null;
+
+  document.addEventListener("keydown", (e) => {
+    const drawer = document.getElementById("right-drawer");
+    const panel = document.getElementById("drawer-panel");
+    if (!drawer || !panel || drawer.classList.contains("hidden") || isClosingDrawer) return;
+
+    if (e.key === "Escape") {
+      const calPop = document.getElementById("wf-calendar-popover");
+      if (calPop && !calPop.classList.contains("hidden")) {
+        calPop.classList.add("hidden");
+        return;
+      }
+      e.preventDefault();
+      window.closeDrawer();
+      return;
+    }
+
+    if (e.key === "Tab") {
+      const focusable = Array.from(
+        panel.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')
+      ).filter((el) => el.offsetParent !== null);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !panel.contains(document.activeElement))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  });
 
   function cancelDrawerAnimations() {
     while (activeDrawerAnims.length) {
@@ -538,6 +598,9 @@
     if (!drawer || !panel) return;
 
     const wasClosed = drawer.classList.contains("hidden") || isClosingDrawer;
+    if (wasClosed && document.activeElement instanceof HTMLElement && !drawer.contains(document.activeElement)) {
+      lastDrawerTriggerEl = document.activeElement;
+    }
     isClosingDrawer = false;
 
     if (drawerHideTimer) {
@@ -570,10 +633,20 @@
     }
 
     drawer.classList.remove("hidden");
+    drawer.setAttribute("aria-hidden", "false");
     backdrop.classList.remove("opacity-0");
     backdrop.classList.add("opacity-100");
     panel.classList.remove("translate-x-full");
     panel.classList.add("translate-x-0");
+
+    requestAnimationFrame(() => {
+      const firstField = bodyEl?.querySelector("input:not([type='hidden']):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])");
+      if (firstField instanceof HTMLElement) {
+        firstField.focus({ preventScroll: true });
+      } else {
+        panel.focus({ preventScroll: true });
+      }
+    });
 
     if (window.Motion && typeof window.Motion.animate === "function") {
       if (wasClosed) {
@@ -640,9 +713,17 @@
 
     if (footerEl) footerEl.classList.add("hidden");
 
+    const restoreDrawerTriggerFocus = () => {
+      if (lastDrawerTriggerEl && lastDrawerTriggerEl.isConnected) {
+        try { lastDrawerTriggerEl.focus({ preventScroll: true }); } catch (_) {}
+      }
+      lastDrawerTriggerEl = null;
+    };
+
     const finishClose = () => {
       if (!isClosingDrawer) return;
       drawer.classList.add("hidden");
+      drawer.setAttribute("aria-hidden", "true");
       backdrop.classList.add("opacity-0");
       backdrop.classList.remove("opacity-100");
       panel.classList.add("translate-x-full");
@@ -653,6 +734,7 @@
         clearTimeout(drawerHideTimer);
         drawerHideTimer = null;
       }
+      restoreDrawerTriggerFocus();
     };
 
     if (window.Motion && typeof window.Motion.animate === "function") {
@@ -916,7 +998,7 @@
         body: JSON.stringify({ step_ups: stepUps })
       });
       showToast("SIP step-up plan saved");
-      window.location.reload();
+      softRefreshCockpit();
     } catch (err) {
       showToast(err.message, "error");
     }
@@ -1072,7 +1154,7 @@
     try {
       const res = await apiJson("/api/sync_navs", { method: "POST", body: "{}" });
       showToast(`Synced live AMFI NAVs for ${res.updated_count || 0} scheme(s)`);
-      window.location.reload();
+      softRefreshCockpit();
     } catch (err) {
       showToast(err.message, "error");
     } finally {
@@ -1084,7 +1166,7 @@
     try {
       const res = await apiJson("/api/sync_all_stocks", { method: "POST", body: "{}" });
       showToast(res.message || "Holdings synced");
-      window.location.reload();
+      softRefreshCockpit();
     } catch (err) {
       showToast(err.message, "error");
     }
@@ -1096,7 +1178,7 @@
     try {
       const res = await apiJson("/api/statutory_rates", { method: "POST", body: "{}" });
       showToast(`Statutory rates synced (PPF ${res.ppf.rate}%, EPF ${res.epf.rate}%)`);
-      window.location.reload();
+      softRefreshCockpit();
     } catch (err) {
       showToast(err.message, "error");
     } finally {
@@ -1602,7 +1684,7 @@
       });
       showToast("Saved successfully");
       closeModal();
-      window.location.reload();
+      softRefreshCockpit();
     } catch (err) {
       showToast(err.message, "error");
     } finally {
@@ -1812,7 +1894,7 @@
       });
       showToast(res.message || "PIN updated");
       closeModal();
-      window.location.reload();
+      softRefreshCockpit();
     } catch (err) {
       showToast(err.message, "error");
     }
@@ -1821,7 +1903,7 @@
   window.lockCockpitSession = async function () {
     try {
       await apiJson("/session/lock", { method: "POST", body: "{}" });
-      window.location.reload();
+      softRefreshCockpit();
     } catch (err) {
       showToast(err.message, "error");
     }
@@ -1831,7 +1913,313 @@
     const pin = document.getElementById("unlock-pin-input")?.value || "";
     try {
       await apiJson("/session/unlock", { method: "POST", body: JSON.stringify({ pin }) });
-      window.location.reload();
+      softRefreshCockpit();
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // 1. Privacy Stealth Mask Toggle (Hide/Show ₹ values)
+  // ---------------------------------------------------------------------------
+  function applyStealthMode(enabled) {
+    if (enabled) {
+      document.documentElement.setAttribute("data-stealth", "true");
+    } else {
+      document.documentElement.removeAttribute("data-stealth");
+    }
+    const btn = document.getElementById("wf-stealth-toggle-btn");
+    const lbl = document.getElementById("wf-stealth-label");
+    if (btn) btn.setAttribute("aria-pressed", String(Boolean(enabled)));
+    if (lbl) lbl.textContent = enabled ? "Show ₹" : "Hide ₹";
+  }
+
+  window.toggleStealthMode = function () {
+    const next = document.documentElement.getAttribute("data-stealth") !== "true";
+    try {
+      localStorage.setItem("wf_stealth_mode", String(next));
+    } catch (_) {}
+    applyStealthMode(next);
+    showToast(next ? "Stealth mask enabled (hover any amount to peek)" : "Stealth mask disabled");
+  };
+
+  function initStealthFromStorage() {
+    try {
+      applyStealthMode(localStorage.getItem("wf_stealth_mode") === "true");
+    } catch (_) {}
+  }
+  initStealthFromStorage();
+  document.addEventListener("turbo:load", initStealthFromStorage);
+
+  // ---------------------------------------------------------------------------
+  // 2. Interactive SVG Chart Point Hover Tooltips
+  // ---------------------------------------------------------------------------
+  document.addEventListener("mouseover", (e) => {
+    const pt = e.target.closest?.("[data-chart-point]");
+    if (!pt) return;
+    let tip = document.getElementById("wf-svg-tooltip");
+    if (!tip) {
+      tip = document.createElement("div");
+      tip.id = "wf-svg-tooltip";
+      tip.className = "fixed z-[80] pointer-events-none px-2.5 py-1.5 rounded-lg bg-slate-900/95 border border-indigo-500/40 shadow-xl text-[11px] text-white";
+      document.body.appendChild(tip);
+    }
+    const label = pt.getAttribute("data-chart-label") || "";
+    const val = pt.getAttribute("data-chart-value") || "";
+    tip.innerHTML = `<div class="text-[10px] text-slate-400">${escHtml(label)}</div><div class="font-mono font-bold text-indigo-300">${escHtml(val)}</div>`;
+    const r = pt.getBoundingClientRect();
+    tip.style.left = `${Math.max(8, Math.round(r.left + r.width / 2 - 55))}px`;
+    tip.style.top = `${Math.max(8, Math.round(r.top - 48))}px`;
+    tip.classList.remove("hidden");
+  });
+
+  document.addEventListener("mouseout", (e) => {
+    if (e.target.closest?.("[data-chart-point]")) {
+      const tip = document.getElementById("wf-svg-tooltip");
+      if (tip) tip.classList.add("hidden");
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // 3. Table Instant Filter & Column Sorting
+  // ---------------------------------------------------------------------------
+  document.addEventListener("input", (e) => {
+    const input = e.target.closest?.("[data-table-filter]");
+    if (!input) return;
+    const tableId = input.getAttribute("data-table-filter");
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const q = String(input.value || "").trim().toLowerCase();
+    table.querySelectorAll("tbody tr").forEach((tr) => {
+      const text = (tr.innerText || "").toLowerCase();
+      tr.classList.toggle("hidden", Boolean(q) && !text.includes(q));
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    const th = e.target.closest?.("th[data-sort-col]");
+    if (!th) return;
+    const table = th.closest("table");
+    const tbody = table?.querySelector("tbody");
+    if (!tbody) return;
+    const colIdx = Number(th.getAttribute("data-sort-col") || 0);
+    const isNum = th.getAttribute("data-sort-type") === "num";
+    const asc = th.getAttribute("data-sort-dir") !== "asc";
+    th.setAttribute("data-sort-dir", asc ? "asc" : "desc");
+
+    const rows = Array.from(tbody.querySelectorAll("tr")).filter((r) => r.children.length > 1);
+    rows.sort((a, b) => {
+      const aTxt = (a.children[colIdx]?.innerText || "").trim();
+      const bTxt = (b.children[colIdx]?.innerText || "").trim();
+      if (isNum) {
+        const aNum = parseFloat(aTxt.replace(/[^0-9.-]/g, "")) || 0;
+        const bNum = parseFloat(bTxt.replace(/[^0-9.-]/g, "")) || 0;
+        return asc ? aNum - bNum : bNum - aNum;
+      }
+      return asc ? aTxt.localeCompare(bTxt) : bTxt.localeCompare(aTxt);
+    });
+    rows.forEach((r) => tbody.appendChild(r));
+  });
+
+  // ---------------------------------------------------------------------------
+  // 4. Quick Inline Bank Balance Edit Popover
+  // ---------------------------------------------------------------------------
+  window.openQuickBalancePopover = function (type, id, currentVal, anchorEl) {
+    closeConfirmDialog();
+    const accounts = (window.TRACKER_DATA && window.TRACKER_DATA.bank_accounts) || [];
+    const record = accounts.find((a) => String(a.id) === String(id));
+    if (!record) {
+      openEditModal(type, id);
+      return;
+    }
+
+    const pane = document.createElement("div");
+    pane.id = "wf-inline-confirm-pane";
+    pane.className = "fixed z-[75] w-72 rounded-2xl bg-slate-900/95 border border-slate-700/90 shadow-2xl p-3.5 backdrop-blur-xl";
+    pane.addEventListener("click", (ev) => ev.stopPropagation());
+    pane.innerHTML = `
+      <div class="text-[10px] font-bold uppercase tracking-wider text-cyan-300 mb-1">Quick Update Balance</div>
+      <div class="text-xs font-semibold text-white mb-2">${escHtml(record.bank_name)} (${escHtml(record.account_no)})</div>
+      <form id="wf-quick-bal-form" class="flex items-center gap-2">
+        <input id="wf-quick-bal-input" type="number" step="0.01" value="${Number(currentVal || 0)}" class="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs font-mono text-white">
+        <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer">Save</button>
+      </form>
+    `;
+    document.body.appendChild(pane);
+    positionConfirmPane(pane, anchorEl);
+
+    const inp = pane.querySelector("#wf-quick-bal-input");
+    inp?.focus();
+    inp?.select();
+
+    const onDocClick = (ev) => {
+      if (!pane.contains(ev.target)) closeConfirmDialog();
+    };
+    setTimeout(() => document.addEventListener("click", onDocClick), 0);
+    activeConfirmCleanup = () => document.removeEventListener("click", onDocClick);
+
+    pane.querySelector("#wf-quick-bal-form").onsubmit = async (ev) => {
+      ev.preventDefault();
+      const newBal = Number(inp.value || 0);
+      try {
+        await apiJson("/api/save_item", {
+          method: "POST",
+          body: JSON.stringify({
+            type: "bank_account",
+            payload: Object.assign({}, record, { current_balance: newBal })
+          })
+        });
+        closeConfirmDialog();
+        showToast(`Updated ${record.bank_name} balance`);
+        softRefreshCockpit();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    };
+  };
+
+  // ---------------------------------------------------------------------------
+  // 5. Home Loan Prepayment & Part-Payment Simulator Drawer
+  // ---------------------------------------------------------------------------
+  window.openHomeLoanPrepaymentDrawer = function () {
+    const hl = (window.OVERVIEW_DATA && window.OVERVIEW_DATA.homeLoan) || {};
+    openDrawer(
+      "Home Loan Prepayment Simulator",
+      `Current Outstanding: ${formatInr(hl.outstanding_principal || 0)} @ ${formatNum(hl.interest_rate || 8.5, 2)}% p.a.`,
+      `
+        <div class="space-y-4">
+          <div class="rounded-2xl bg-slate-950/60 border border-slate-800 p-4 space-y-4">
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <label for="hl-sim-lump" class="text-slate-300 font-medium">One-Time Lump-Sum Prepayment (₹)</label>
+                <span id="hl-sim-lump-lbl" class="font-mono font-bold text-emerald-300">₹2,00,000</span>
+              </div>
+              <input id="hl-sim-lump" type="range" min="0" max="2500000" step="25000" value="200000" oninput="previewHomeLoanPrepayment()" class="w-full accent-emerald-500">
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <label for="hl-sim-extra-emi" class="text-slate-300 font-medium">Extra Monthly EMI Step-Up (₹/mo)</label>
+                <span id="hl-sim-extra-lbl" class="font-mono font-bold text-indigo-300">₹5,000/mo</span>
+              </div>
+              <input id="hl-sim-extra-emi" type="range" min="0" max="100000" step="2500" value="5000" oninput="previewHomeLoanPrepayment()" class="w-full accent-indigo-500">
+            </div>
+          </div>
+          <div id="hl-prepayment-results" class="text-xs text-slate-400">Computing amortization impact...</div>
+        </div>
+      `
+    );
+    previewHomeLoanPrepayment();
+  };
+
+  window.previewHomeLoanPrepayment = async function () {
+    const lump = Number(document.getElementById("hl-sim-lump")?.value || 0);
+    const extra = Number(document.getElementById("hl-sim-extra-emi")?.value || 0);
+    const lumpLbl = document.getElementById("hl-sim-lump-lbl");
+    const extraLbl = document.getElementById("hl-sim-extra-lbl");
+    if (lumpLbl) lumpLbl.textContent = formatInr(lump);
+    if (extraLbl) extraLbl.textContent = `${formatInr(extra)}/mo`;
+
+    const box = document.getElementById("hl-prepayment-results");
+    if (!box) return;
+    try {
+      const res = await apiJson("/api/home_loan/prepayment_preview", {
+        method: "POST",
+        body: JSON.stringify({ lump_sum: lump, extra_monthly_emi: extra })
+      });
+      if (res && res.html) box.innerHTML = res.html;
+    } catch (err) {
+      box.innerHTML = `<div class="text-rose-400">${escHtml(err.message)}</div>`;
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // 6. Auto-Fill Tax Planner from Portfolio Modules
+  // ---------------------------------------------------------------------------
+  window.autoFillTaxFromPortfolio = async function () {
+    const btn = document.getElementById("autofill-tax-btn");
+    if (btn) btn.disabled = true;
+    try {
+      const res = await apiJson("/api/tax_autofill", { method: "POST", body: "{}" });
+      const af = res.autofill || {};
+      const fieldMap = {
+        tax_gross_salary: af.gross_salary,
+        tax_interest_income: af.interest_income,
+        tax_home_loan_interest_24b: af.home_loan_interest_24b,
+        tax_sec_80c: af.sec_80c,
+        tax_sec_80d_health: af.sec_80d_health,
+        tax_sec_80tta_savings: af.sec_80tta_savings
+      };
+      Object.entries(fieldMap).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined && val !== null) el.value = val;
+      });
+      await window.recalcTaxLive();
+      showToast("Auto-filled 80C, 80D, 80TTA, FD Interest & Home Loan 24(b) from your portfolio");
+    } catch (err) {
+      showToast(err.message, "error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // 7. Import / Restore Portfolio JSON Backup Drawer
+  // ---------------------------------------------------------------------------
+  window.openImportPortfolioDrawer = function () {
+    openDrawer(
+      "Import / Restore Portfolio Snapshot",
+      "Paste or upload a WealthFlow .json backup snapshot to restore your portfolio",
+      `
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5">Select Backup JSON File</label>
+            <input type="file" id="wf-import-file" accept=".json,application/json" class="w-full text-xs text-slate-300 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
+          </div>
+          <div>
+            <label for="wf-import-json-text" class="block text-xs font-medium text-slate-300 mb-1.5">Or Paste Backup JSON</label>
+            <textarea id="wf-import-json-text" rows="10" placeholder='{"mutual_funds": [...], "fixed_deposits": [...], "bank_accounts": [...]}' class="w-full p-3 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono text-white"></textarea>
+          </div>
+        </div>
+      `,
+      {
+        footerMode: "confirm",
+        submitLabel: "Restore Portfolio Backup",
+        onConfirm: () => window.submitImportPortfolio()
+      }
+    );
+
+    const fileInp = document.getElementById("wf-import-file");
+    if (fileInp) {
+      fileInp.onchange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const ta = document.getElementById("wf-import-json-text");
+          if (ta) ta.value = String(reader.result || "");
+        };
+        reader.readAsText(file);
+      };
+    }
+  };
+
+  window.submitImportPortfolio = async function () {
+    const raw = document.getElementById("wf-import-json-text")?.value || "";
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (_) {
+      showToast("Invalid JSON format", "error");
+      return;
+    }
+    try {
+      const res = await apiJson("/api/import_portfolio", {
+        method: "POST",
+        body: JSON.stringify({ portfolio: parsed })
+      });
+      showToast(res.message || "Portfolio restored");
+      window.closeDrawer();
+      softRefreshCockpit();
     } catch (err) {
       showToast(err.message, "error");
     }

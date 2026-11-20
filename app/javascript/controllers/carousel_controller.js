@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["slide", "dot", "tab", "counter"]
+  static targets = ["slide", "dot", "tab", "counter", "body", "toggleBtn"]
   static values = {
     index: { type: Number, default: 0 },
     interval: { type: Number, default: 5500 }
@@ -10,8 +10,36 @@ export default class extends Controller {
   connect() {
     this.isPaused = false
     this._anims = []
+    this.isMinimized = false
+    try {
+      this.isMinimized = localStorage.getItem("wf_carousel_minimized") === "true"
+    } catch (_) {}
+    this.applyMinimizeState()
     this.showSlide(this.indexValue, false, 1)
-    this.startTimer()
+    if (!this.isMinimized) this.startTimer()
+  }
+
+  toggleMinimize() {
+    this.isMinimized = !this.isMinimized
+    try {
+      localStorage.setItem("wf_carousel_minimized", String(this.isMinimized))
+    } catch (_) {}
+    this.applyMinimizeState()
+    if (this.isMinimized) {
+      this.stopTimer()
+    } else if (!this.isPaused) {
+      this.startTimer()
+    }
+  }
+
+  applyMinimizeState() {
+    if (this.hasBodyTarget) {
+      this.bodyTarget.classList.toggle("hidden", this.isMinimized)
+    }
+    if (this.hasToggleBtnTarget) {
+      this.toggleBtnTarget.textContent = this.isMinimized ? "Expand Highlights" : "Minimize"
+      this.toggleBtnTarget.setAttribute("aria-expanded", String(!this.isMinimized))
+    }
   }
 
   disconnect() {

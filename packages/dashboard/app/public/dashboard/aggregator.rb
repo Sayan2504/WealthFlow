@@ -52,6 +52,56 @@ module Dashboard
       pct_80d = ((utilized_80d / 50_000.0) * 100.0).round
       total_tax_saved = ((utilized_80c + utilized_80d) * 0.312).round
 
+      liquid_cash = banking[:accounts][:totalBalance].to_f
+      monthly_outflow = mf[:sip].to_f + home_loan[:monthly_emi].to_f + rd[:monthly].to_f + flexi_rd[:baseMonthly].to_f
+      runway_months = monthly_outflow.positive? ? (liquid_cash / monthly_outflow).round(1) : 0.0
+      runway_status = if runway_months >= 6.0
+                        "Strong (6+ mo)"
+                      elsif runway_months >= 3.0
+                        "Moderate (3–6 mo)"
+                      else
+                        "Low (<3 mo)"
+                      end
+
+      raw_accounts = Array(d[:bank_accounts])
+      missing_nominees = raw_accounts.count { |a| a[:nominee].to_s.strip.empty? }
+      maturing_fds_90d = Array(d[:fixed_deposits]).count do |f|
+        md = Date.parse(f[:maturity_date].to_s) rescue nil
+        md && (md - Date.current).to_i.between?(0, 90)
+      end
+
+      upcoming_events = []
+      if home_loan[:outstanding_principal].to_f.positive? && home_loan[:monthly_emi].to_f.positive?
+        upcoming_events << {
+          label: "Home Loan EMI",
+          schedule: "#{home_loan[:emi_day]}th of month",
+          amount_inr: Core::CurrencyFormatter.format_inr(home_loan[:monthly_emi]),
+          category: "EMI",
+          url: "/home_loan"
+        }
+      end
+      if mf[:sip].to_f.positive?
+        upcoming_events << {
+          label: "Mutual Fund SIPs",
+          schedule: "Monthly Auto-Debit",
+          amount_inr: Core::CurrencyFormatter.format_inr(mf[:sip]),
+          category: "SIP",
+          url: "/mutual_funds"
+        }
+      end
+      Array(d[:credit_cards]).each do |cc|
+        util = cc[:utilized_amount].to_f
+        next unless util.positive?
+
+        upcoming_events << {
+          label: "#{cc[:bank_name]} #{cc[:card_name]} Bill",
+          schedule: "Due #{cc[:due_day] || 15}th",
+          amount_inr: Core::CurrencyFormatter.format_inr(util),
+          category: "Card Due",
+          url: "/banking"
+        }
+      end
+
       graphs = build_wealth_graphs(
         data: d,
         mf: mf,
@@ -91,7 +141,18 @@ module Dashboard
         homeLoanIns: home_loan_ins,
         banking: banking,
         taxCalc: tax_calc,
-        graphs: graphs
+        graphs: graphs,
+        liquidityRunway: {
+          liquidCash: liquid_cash,
+          monthlyOutflow: monthly_outflow,
+          runwayMonths: runway_months,
+          statusLabel: runway_status
+        },
+        compliance: {
+          missingNominees: missing_nominees,
+          maturingFds90d: maturing_fds_90d
+        },
+        upcomingEvents: upcoming_events
       }.with_indifferent_access
     end
 

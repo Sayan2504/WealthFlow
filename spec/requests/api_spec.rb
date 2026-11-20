@@ -172,4 +172,39 @@ RSpec.describe "Portfolio & Mutual Funds API", type: :request do
       expect(response).to have_http_status(:ok)
     end
   end
+
+  describe "Home Loan Prepayment Simulator, Tax Auto-Fill & JSON Backup Export/Import" do
+    it "computes Home Loan prepayment savings on the backend" do
+      post "/api/home_loan/prepayment_preview",
+           params: { lump_sum: 200_000, extra_monthly_emi: 5_000 }.to_json,
+           headers: { "CONTENT_TYPE" => "application/json" }
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["ok"]).to be(true)
+      expect(json.dig("simulation", "interest_saved")).to be >= 0
+      expect(json["html"]).to include("Total Interest Saved")
+    end
+
+    it "computes Tax Planner auto-fill values from portfolio modules" do
+      post "/api/tax_autofill", params: "{}", headers: { "CONTENT_TYPE" => "application/json" }
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["success"]).to be(true)
+      expect(json["autofill"]).to include("sec_80c", "sec_80d_health", "interest_income", "home_loan_interest_24b")
+    end
+
+    it "exports and restores a JSON portfolio backup snapshot" do
+      get "/api/export_json"
+      expect(response).to have_http_status(:ok)
+      expect(response.headers["Content-Type"]).to include("application/json")
+      exported = JSON.parse(response.body)
+      expect(exported).to have_key("mutual_funds")
+
+      post "/api/import_portfolio",
+           params: { portfolio: exported }.to_json,
+           headers: { "CONTENT_TYPE" => "application/json" }
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)["success"]).to be(true)
+    end
+  end
 end

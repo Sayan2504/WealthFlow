@@ -80,6 +80,45 @@ module Api
       }
     end
 
+    # POST /api/home_loan/prepayment_preview
+    def home_loan_prepayment
+      data = Portfolio::Repository.instance.read(user: current_user)
+      lump_sum = params[:lump_sum].to_f
+      extra_emi = params[:extra_monthly_emi].to_f
+
+      sim = HomeLoan::EmiCalculator.simulate_prepayment(
+        data[:home_loan],
+        lump_sum: lump_sum,
+        extra_monthly_emi: extra_emi
+      )
+
+      html = <<~HTML
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-3.5">
+            <div class="text-[10px] uppercase tracking-wider text-slate-400">Remaining Tenure</div>
+            <div class="text-base font-bold font-mono text-white mt-1">#{sim[:accelerated_months]} mo <span class="text-xs font-normal text-slate-400">(was #{sim[:baseline_months]} mo)</span></div>
+            <div class="text-[11px] font-semibold text-emerald-300 mt-1">Saves #{sim[:months_saved]} months (#{sim[:years_saved]} yrs)</div>
+          </div>
+          <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-3.5">
+            <div class="text-[10px] uppercase tracking-wider text-slate-400">Remaining Interest Outflow</div>
+            <div class="text-base font-bold font-mono text-amber-300 mt-1">#{ERB::Util.html_escape(sim[:accelerated_interest_inr])}</div>
+            <div class="text-[11px] text-slate-400 mt-1">Baseline: #{ERB::Util.html_escape(sim[:baseline_interest_inr])}</div>
+          </div>
+          <div class="rounded-xl bg-emerald-950/40 border border-emerald-500/35 p-3.5">
+            <div class="text-[10px] uppercase tracking-wider text-emerald-300">Total Interest Saved</div>
+            <div class="text-lg font-bold font-mono text-emerald-300 mt-1">#{ERB::Util.html_escape(sim[:interest_saved_inr])}</div>
+            <div class="text-[11px] text-emerald-200/80 mt-1">Direct principal reduction impact</div>
+          </div>
+        </div>
+      HTML
+
+      render json: {
+        ok: true,
+        simulation: sim,
+        html: html
+      }
+    end
+
     private
 
     def require_unlocked_session!

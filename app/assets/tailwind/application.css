@@ -19,21 +19,71 @@
   --wf-bg-primary: #020617;
   --wf-bg-secondary: #0f172a;
   --wf-bg-elevated: rgba(15, 23, 42, 0.94);
+  --wf-surface: rgba(15, 23, 42, 0.85);
+  --wf-surface-muted: rgba(30, 41, 59, 0.70);
   --wf-card-bg: rgba(15, 23, 42, 0.72);
   --wf-card-border: rgba(51, 65, 85, 0.60);
+  --wf-border-strong: rgba(71, 85, 105, 0.85);
   --wf-text-primary: #f8fafc;
   --wf-text-secondary: #cbd5e1;
   --wf-text-muted: #94a3b8;
   --wf-accent: #6366f1;
   --wf-accent-soft: rgba(99, 102, 241, 0.16);
+  --wf-accent-text: #c7d2fe;
+  --wf-focus-ring: #6366f1;
 }
 
 html[data-mode="dark"] {
   color-scheme: dark;
+  --wf-surface: rgba(15, 23, 42, 0.85);
+  --wf-surface-muted: rgba(30, 41, 59, 0.70);
+  --wf-border-strong: rgba(71, 85, 105, 0.85);
+  --wf-accent-text: #c7d2fe;
+  --wf-focus-ring: #818cf8;
 }
 
 html[data-mode="light"] {
   color-scheme: light;
+  --wf-surface: #ffffff;
+  --wf-surface-muted: #f1f5f9;
+  --wf-border-strong: #cbd5e1;
+  --wf-accent-text: #4338ca;
+  --wf-focus-ring: #4f46e5;
+}
+
+/* Semantic Theme Token Surfaces & Accessible Keyboard Focus Ring */
+.wf-surface {
+  background-color: var(--wf-surface);
+  border-color: var(--wf-card-border);
+  color: var(--wf-text-primary);
+}
+
+.wf-surface-muted {
+  background-color: var(--wf-surface-muted);
+  border-color: var(--wf-border-strong);
+  color: var(--wf-text-secondary);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--wf-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Privacy Stealth Mask Mode (blur currency values; reveal on hover/focus) */
+html[data-stealth="true"] main .font-mono {
+  filter: blur(6px);
+  transition: filter 0.18s ease;
+  user-select: none;
+}
+
+html[data-stealth="true"] main .font-mono:hover,
+html[data-stealth="true"] main .font-mono:focus {
+  filter: blur(0);
 }
 
 body {

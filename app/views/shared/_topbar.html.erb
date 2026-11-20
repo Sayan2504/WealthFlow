@@ -1,0 +1,119 @@
+<!-- Top Panel Header: Active Page Title + AI Top-Panel Global Search Omnibar + 3-Theme Switcher (NO module nav links here) -->
+<header class="sticky top-0 z-30 min-h-16 py-2.5 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-3">
+  <div class="flex items-center gap-3 min-w-0">
+    <button
+      type="button"
+      data-action="click->sidebar#open"
+      class="lg:hidden p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+      aria-label="Open Navigation Sidebar"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+    <div class="min-w-0">
+      <div class="text-sm sm:text-base font-bold text-white truncate"><%= active_page_label %></div>
+      <div class="text-[11px] text-slate-400 hidden sm:block truncate">
+        Private Vault • <%= current_user.name %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Search Bar (Search -> Page Navigation | Ask AI -> Opens Drawer) -->
+  <div
+    id="top-portfolio-search"
+    data-controller="global-search"
+    class="relative w-full md:w-[27rem] xl:w-[32rem] order-3 md:order-2"
+  >
+    <label for="global-top-search" class="sr-only">Search portfolio or switch to Ask AI mode</label>
+    <div class="relative flex items-center gap-1.5 px-2 py-1 rounded-xl bg-slate-900/95 border border-slate-700/80 shadow-sm focus-within:border-indigo-500">
+      <div class="wf-glide-group flex items-center p-0.5 rounded-lg bg-slate-950 border border-slate-800 shrink-0" data-glide-variant="accent" role="group" aria-label="Search Mode">
+        <button
+          type="button"
+          data-global-search-target="modeBtn"
+          data-search-mode="search"
+          data-action="click->global-search#setMode"
+          class="px-2 py-1 rounded-md text-[10px] font-semibold bg-indigo-600 text-white transition-colors cursor-pointer"
+        >Search</button>
+        <button
+          type="button"
+          data-global-search-target="modeBtn"
+          data-search-mode="ai"
+          data-action="click->global-search#setMode"
+          class="px-2 py-1 rounded-md text-[10px] font-medium text-slate-400 hover:text-white transition-colors cursor-pointer"
+        >Ask AI</button>
+      </div>
+
+      <input
+        id="global-top-search"
+        type="search"
+        autocomplete="off"
+        placeholder="Search FD, MF, PPF, Home Loan, Bank, Insurance, Tax..."
+        data-global-search-target="input"
+        data-action="focus->global-search#onFocus input->global-search#onInput keydown->global-search#onKeydown"
+        class="flex-1 min-w-0 bg-transparent px-1.5 py-1 text-xs text-white placeholder-slate-400 focus:outline-none border-0"
+      >
+
+      <span data-global-search-target="spinner" class="hidden w-3.5 h-3.5 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin shrink-0"></span>
+      <kbd class="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono text-slate-400 shrink-0">/</kbd>
+    </div>
+
+    <!-- Search Results Dropdown (Takes user directly to matching page or shows "No match found") -->
+    <div
+      data-global-search-target="panel"
+      class="hidden absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden"
+    >
+      <div class="px-3.5 py-2 border-b border-slate-800 flex items-center justify-between text-[10px] uppercase tracking-wider text-slate-400">
+        <span class="font-semibold text-indigo-300">Jump to Page</span>
+        <span>Press Enter or Click</span>
+      </div>
+      <div data-global-search-target="list" class="max-h-72 overflow-y-auto p-2 space-y-1 card-scroll"></div>
+    </div>
+  </div>
+
+  <!-- Right Controls: Stealth Privacy Mask + Dedicated AI Drawer Button + Config-Driven Theme Switcher (theme.yml) -->
+  <div class="flex items-center gap-2 order-2 md:order-3 shrink-0">
+    <button
+      type="button"
+      id="wf-stealth-toggle-btn"
+      onclick="toggleStealthMode()"
+      aria-pressed="false"
+      class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/80 transition-colors cursor-pointer"
+      title="Toggle Privacy Stealth Mask (Blur ₹ amounts; hover any number to peek)"
+    >
+      <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <span id="wf-stealth-label" class="hidden sm:inline">Hide ₹</span>
+    </button>
+
+    <button
+      type="button"
+      id="open-ai-drawer-btn"
+      data-action="click->cockpit#openAiDrawer"
+      onclick="if(!window.Stimulus) openAiAssistantDrawer(document.getElementById('global-top-search')?.value || '')"
+      class="wf-cta-solid inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition-colors cursor-pointer"
+      title="Open WealthFlow AI Drawer"
+    >
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+      </svg>
+      <span>Ask AI</span>
+    </button>
+
+    <div class="wf-glide-group flex items-center gap-1 p-1 rounded-xl bg-slate-900/90 border border-slate-800" data-glide-variant="accent" role="group" aria-label="Theme Switcher">
+      <% Core::ThemeRegistry.all.each do |theme_key, cfg| %>
+        <button
+          type="button"
+          data-theme-target="button"
+          data-theme-value="<%= theme_key %>"
+          data-action="click->theme#select"
+          title="<%= cfg['description'] %>"
+          class="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 border border-transparent hover:text-white transition-colors duration-200 cursor-pointer"
+        ><%= cfg["short_label"] || cfg["label"] %></button>
+      <% end %>
+    </div>
+  </div>
+</header>

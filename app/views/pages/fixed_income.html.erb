@@ -1,11 +1,10 @@
 <% content_for :title, "WealthFlow — Fixed Deposits, RDs & Post-Tax Interest" %>
 
-<script>
-  window.FI_GROSS_INTEREST = <%= @ov.dig(:postTax, :totalGrossGain).to_f %>;
-  window.FI_AVG_RATE = <%= @ov.dig(:fd, :avgRate).to_f %>;
-</script>
-
-<div class="space-y-6">
+<div
+  class="space-y-6"
+  data-fi-gross-interest="<%= @ov.dig(:postTax, :totalGrossGain).to_f %>"
+  data-fi-avg-rate="<%= @ov.dig(:fd, :avgRate).to_f %>"
+>
   <!-- Header -->
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
@@ -13,13 +12,13 @@
       <p class="text-xs text-slate-400 mt-1">Fixed Deposits, Recurring Deposits, Flexi RDs &amp; After-Tax Net Interest Reality</p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
-      <button type="button" onclick="openAddModal('fd')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-colors">
+      <button type="button" data-action="click->cockpit#openAdd" data-cockpit-type-param="fd" onclick="if(!window.Stimulus) openAddModal('fd')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-colors">
         + Add FD
       </button>
-      <button type="button" onclick="openAddModal('rd')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors">
+      <button type="button" data-action="click->cockpit#openAdd" data-cockpit-type-param="rd" onclick="if(!window.Stimulus) openAddModal('rd')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors">
         + Add RD
       </button>
-      <button type="button" onclick="openAddModal('flexi_rd')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors">
+      <button type="button" data-action="click->cockpit#openAdd" data-cockpit-type-param="flexi_rd" onclick="if(!window.Stimulus) openAddModal('flexi_rd')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors">
         + Add Flexi RD
       </button>
     </div>
@@ -115,24 +114,71 @@
     </div>
   </section>
 
+  <!-- FD Maturity Ladder & Reinvestment Horizon -->
+  <%
+    urgent_fds = @fds.select { |r| d = Date.parse(r.dig(:raw, :maturity_date).to_s) rescue nil; d && (d - Date.current).to_i <= 90 }
+    near_fds   = @fds.select { |r| d = Date.parse(r.dig(:raw, :maturity_date).to_s) rescue nil; d && (d - Date.current).to_i.between?(91, 365) }
+    long_fds   = @fds.select { |r| d = Date.parse(r.dig(:raw, :maturity_date).to_s) rescue nil; d.nil? || (d - Date.current).to_i > 365 }
+  %>
+  <section class="glass-card rounded-2xl p-5 space-y-3">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div>
+        <h2 class="text-sm font-bold text-white">FD Maturity Ladder &amp; Reinvestment Horizon</h2>
+        <p class="text-xs text-slate-400">Distribution of Fixed Deposits by maturity window to plan liquidity &amp; renewal rates</p>
+      </div>
+      <span class="text-xs font-mono text-slate-400"><%= @fds.size %> Active FDs</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+      <div class="rounded-xl bg-amber-950/40 border border-amber-500/30 p-3.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-amber-300">&le; 90 Days (Reinvest Soon)</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30"><%= urgent_fds.size %> FD(s)</span>
+        </div>
+        <div class="mt-1.5 text-lg font-bold font-mono text-white"><%= format_inr(urgent_fds.sum { |r| r.dig(:calc, :maturity).to_f }) %></div>
+      </div>
+      <div class="rounded-xl bg-indigo-950/40 border border-indigo-500/30 p-3.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">3–12 Months (Near Term)</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30"><%= near_fds.size %> FD(s)</span>
+        </div>
+        <div class="mt-1.5 text-lg font-bold font-mono text-white"><%= format_inr(near_fds.sum { |r| r.dig(:calc, :maturity).to_f }) %></div>
+      </div>
+      <div class="rounded-xl bg-emerald-950/40 border border-emerald-500/30 p-3.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-300">1+ Years (Long-Term Lock)</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"><%= long_fds.size %> FD(s)</span>
+        </div>
+        <div class="mt-1.5 text-lg font-bold font-mono text-white"><%= format_inr(long_fds.sum { |r| r.dig(:calc, :maturity).to_f }) %></div>
+      </div>
+    </div>
+  </section>
+
   <!-- Fixed Deposits Table -->
   <section class="glass-card rounded-2xl p-5">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-sm font-bold text-white">Fixed Deposits (FD)</h2>
-      <span class="text-xs text-slate-400">Quarterly compounding • Auto/Custom Maturity</span>
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div>
+        <h2 class="text-sm font-bold text-white">Fixed Deposits (FD)</h2>
+        <span class="text-xs text-slate-400">Quarterly compounding • Click any column header to sort</span>
+      </div>
+      <input
+        type="search"
+        data-table-filter="fd-ledger-table"
+        placeholder="Filter FDs by bank, FD number, or timeline..."
+        class="w-full sm:w-64 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-400"
+      >
     </div>
     <div class="overflow-x-auto card-scroll">
-      <table class="w-full text-left border-collapse text-xs">
+      <table id="fd-ledger-table" data-sortable-table class="w-full text-left border-collapse text-xs">
         <thead>
           <tr class="text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
-            <th class="py-3 pr-3">Bank &amp; FD No</th>
-            <th class="py-3 px-3 text-right">Principal</th>
-            <th class="py-3 px-3 text-right">Rate</th>
+            <th data-sort-col="0" class="py-3 pr-3 cursor-pointer hover:text-white select-none">Bank &amp; FD No ↕</th>
+            <th data-sort-col="1" data-sort-type="num" class="py-3 px-3 text-right cursor-pointer hover:text-white select-none">Principal ↕</th>
+            <th data-sort-col="2" data-sort-type="num" class="py-3 px-3 text-right cursor-pointer hover:text-white select-none">Rate ↕</th>
             <th class="py-3 px-3">Start → Maturity</th>
             <th class="py-3 px-3">Timeline</th>
-            <th class="py-3 px-3 text-right">Gross Interest</th>
-            <th class="py-3 px-3 text-right">Post-Tax Interest</th>
-            <th class="py-3 px-3 text-right">Maturity Amt</th>
+            <th data-sort-col="5" data-sort-type="num" class="py-3 px-3 text-right cursor-pointer hover:text-white select-none">Gross Interest ↕</th>
+            <th data-sort-col="6" data-sort-type="num" class="py-3 px-3 text-right cursor-pointer hover:text-white select-none">Post-Tax Interest ↕</th>
+            <th data-sort-col="7" data-sort-type="num" class="py-3 px-3 text-right cursor-pointer hover:text-white select-none">Maturity Amt ↕</th>
             <th class="py-3 pl-3 text-right">Actions</th>
           </tr>
         </thead>

@@ -25,13 +25,17 @@ Rails.application.routes.draw do
     post "fixed_income/slab_preview", to: "calculations#slab_preview"
     post "fixed_income/deposit_preview", to: "calculations#deposit_preview"
     post "mutual_funds/sip_projection", to: "calculations#sip_projection"
+    post "home_loan/prepayment_preview", to: "calculations#home_loan_prepayment"
     get "export_csv", to: "portfolio#export_csv"
     get "export_excel", to: "portfolio#export_excel"
+    get "export_json", to: "portfolio#export_json"
+    post "import_portfolio", to: "portfolio#import_portfolio"
     post "clear_data", to: "portfolio#clear_data"
     match "statutory_rates", to: "portfolio#statutory_rates", via: %i[get post]
     post "save_item", to: "portfolio#save_item"
     post "delete_item", to: "portfolio#delete_item"
     post "tax_preview", to: "portfolio#tax_preview"
+    post "tax_autofill", to: "portfolio#tax_autofill"
 
     # Mutual Funds & AMFI API
     get "mf_search", to: "mutual_funds#search"
